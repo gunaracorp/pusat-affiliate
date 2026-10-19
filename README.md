@@ -27,13 +27,23 @@
 
 | Role | Name / Entity | Link |
 |------|---------------|------|
-| 👑 **Creator & Architect** | **Gugun Gunara** | — |
+| 👑 **Creator & Architect** | **Gugun Gunara** — *Master Polymath · Sage Universal · The Ultimate Problem Solver* | — |
 | 🛠️ Co-Creator | Muhammad Lutfi Azmi | [digiman.id](https://digiman.id) |
 | 🏷️ Team Brands | Prabudanling · Santri Angon | — |
 | 🏢 Support System | **PT Top Konsultan Internasional** | [topkonsultan.web.id](https://topkonsultan.web.id) |
 | 🏢 Support System | **PT Digital Bisnis Manajemen** | [digiman.id](https://digiman.id) |
 
-<sub>PUSATAFFILIATE is created by **Gugun Gunara**, co-created with **Muhammad Lutfi Azmi**, together with the **Prabudanling** & **Santri Angon** brands — supported by **PT Top Konsultan Internasional** (topkonsultan.web.id) and **PT Digital Bisnis Manajemen** (digiman.id).</sub>
+**🌐 Official Social Profiles — Gugun Gunara:**
+
+| Platform | Handle | Link |
+|----------|--------|------|
+| Facebook | @bossdanling | [facebook.com/bossdanling](https://www.facebook.com/bossdanling) |
+| X (Twitter) | @gunzz_krenzz | [x.com/gunzz_krenzz](https://x.com/gunzz_krenzz) |
+| Instagram | @prabudanling | [instagram.com/prabudanling](https://www.instagram.com/prabudanling) |
+| TikTok | @gunaracorp | [tiktok.com/@gunaracorp](https://www.tiktok.com/@gunaracorp) |
+| Threads | @prabudanling | [threads.net/@prabudanling](https://www.threads.net/@prabudanling) |
+
+<sub>PUSATAFFILIATE is created by **Gugun Gunara** (Master Polymath · Sage Universal · The Ultimate Problem Solver), co-created with **Muhammad Lutfi Azmi**, together with the **Prabudanling** & **Santri Angon** brands — supported by **PT Top Konsultan Internasional** (topkonsultan.web.id) and **PT Digital Bisnis Manajemen** (digiman.id).</sub>
 
 ---
 
@@ -392,7 +402,9 @@ Released under the [MIT License](LICENSE).
 <div align="center">
 
 **PUSATAFFILIATE** · Web 6.0 Protocol · Node Cluster 46/46
-*by **Gugun Gunara** — with **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+*by **Gugun Gunara** — Master Polymath · Sage Universal · The Ultimate Problem Solver — with **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+
+**Find me:** [Facebook](https://www.facebook.com/bossdanling) · [X](https://x.com/gunzz_krenzz) · [Instagram](https://www.instagram.com/prabudanling) · [TikTok](https://www.tiktok.com/@gunaracorp) · [Threads](https://www.threads.net/@prabudanling) · [topkonsultan.web.id](https://topkonsultan.web.id) · [digiman.id](https://digiman.id)
 *Supported by **PT Top Konsultan Internasional** (topkonsultan.web.id) & **PT Digital Bisnis Manajemen** (digiman.id)*
 
 *Jakarta / Everywhere — 2045*
@@ -411,13 +423,23 @@ Released under the [MIT License](LICENSE).
 
 | Peran | Nama / Entitas | Tautan |
 |-------|----------------|--------|
-| 👑 **Kreator & Arsitek** | **Gugun Gunara** | — |
+| 👑 **Kreator & Arsitek** | **Gugun Gunara** — *Master Polymath · Sage Universal · The Ultimate Problem Solver* | — |
 | 🛠️ Ko-Kreator | Muhammad Lutfi Azmi | [digiman.id](https://digiman.id) |
 | 🏷️ Brand Tim | Prabudanling · Santri Angon | — |
 | 🏢 Support System | **PT Top Konsultan Internasional** | [topkonsultan.web.id](https://topkonsultan.web.id) |
 | 🏢 Support System | **PT Digital Bisnis Manajemen** | [digiman.id](https://digiman.id) |
 
-<sub>PUSATAFFILIATE dibuat oleh **Gugun Gunara**, bersama ko-kreator **Muhammad Lutfi Azmi**, serta brand **Prabudanling** & **Santri Angon** — didukung oleh **PT Top Konsultan Internasional** (topkonsultan.web.id) dan **PT Digital Bisnis Manajemen** (digiman.id).</sub>
+**🌐 Sosial Media Resmi — Gugun Gunara:**
+
+| Platform | Handle | Tautan |
+|----------|--------|--------|
+| Facebook | @bossdanling | [facebook.com/bossdanling](https://www.facebook.com/bossdanling) |
+| X (Twitter) | @gunzz_krenzz | [x.com/gunzz_krenzz](https://x.com/gunzz_krenzz) |
+| Instagram | @prabudanling | [instagram.com/prabudanling](https://www.instagram.com/prabudanling) |
+| TikTok | @gunaracorp | [tiktok.com/@gunaracorp](https://www.tiktok.com/@gunaracorp) |
+| Threads | @prabudanling | [threads.net/@prabudanling](https://www.threads.net/@prabudanling) |
+
+<sub>PUSATAFFILIATE dibuat oleh **Gugun Gunara** (Master Polymath · Sage Universal · The Ultimate Problem Solver), bersama ko-kreator **Muhammad Lutfi Azmi**, serta brand **Prabudanling** & **Santri Angon** — didukung oleh **PT Top Konsultan Internasional** (topkonsultan.web.id) dan **PT Digital Bisnis Manajemen** (digiman.id).</sub>
 
 **PUSATAFFILIATE** adalah platform *belajar + eksekusi* all-in-one untuk pekerja affiliate, dibangun mengelilingi program-program komisi tertinggi di dunia — **TikTok Shop, Shopee, Amazon, ClickBank, Lazada, Involve Asia, Binance, dan lainnya**.
 
@@ -587,7 +609,9 @@ Platform ini untuk **edukasi & simulasi**. Statistik komisi, angka EPC, leaderbo
 <div align="center">
 
 **PUSATAFFILIATE** · Web 6.0 Protocol · Node Cluster 46/46
-*by **Gugun Gunara** — bersama **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+*by **Gugun Gunara** — Master Polymath · Sage Universal · The Ultimate Problem Solver — bersama **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+
+**Temukan saya:** [Facebook](https://www.facebook.com/bossdanling) · [X](https://x.com/gunzz_krenzz) · [Instagram](https://www.instagram.com/prabudanling) · [TikTok](https://www.tiktok.com/@gunaracorp) · [Threads](https://www.threads.net/@prabudanling) · [topkonsultan.web.id](https://topkonsultan.web.id) · [digiman.id](https://digiman.id)
 *Didukung oleh **PT Top Konsultan Internasional** (topkonsultan.web.id) & **PT Digital Bisnis Manajemen** (digiman.id)*
 
 *Jakarta / Everywhere — 2045*

@@ -165,3 +165,22 @@ Stage Summary:
 - Branding lengkap di 4 lapis: UI terlihat (footer band + copyright + sheet), meta tags, JSON-LD structured data, README
 - Domain kanonik bisa diganti saat deploy via env NEXT_PUBLIC_SITE_URL — dokumentasi di .env.example
 - Catatan: peringkat Google membutuhkan domain live terindeks + Google Search Console; semua sinyal on-page sudah terpasang
+---
+Task ID: 12
+Agent: main (orchestrator)
+Task: Branding Super — gelar "Master Polymath · Sage Universal · The Ultimate Problem Solver" + 5 sosial media (FB bossdanling, X @gunzz_krenzz, IG @prabudanling, TikTok @gunaracorp, Threads @prabudanling) + sameAs Knowledge Panel
+
+Work Log:
+- src/lib/brand.ts (BARU): SSOT identitas — SITE_URL, SITE_NAME, BRAND {founder, coFounder, brands, titles[], titlesLine, companies[2], socials[5], allProfileUrls getter}, BRAND_CREDIT_LINE
+- src/components/pa/social-icons.tsx (BARU): TikTokIcon + ThreadsIcon (SVG path presisi, fill), SocialRow — 5 ikon glass circular (Facebook/Twitter/Instagram dari lucide + 2 custom), rel="me noopener noreferrer" (standar verifikasi kepemilikan IndieWeb), aria-label berisi nama + handle, hover lift + glow emerald, focus-visible ring
+- layout.tsx: JSON-LD Person Gugun Gunara diperkaya — alternateName ["Gugun","bossdanling","gunzz_krenzz","prabudanling","gunaracorp"], honorificPrefix "Master Polymath", jobTitle berisi titlesLine, description dengan 3 gelar, sameAs 8 URL (5 sosmed + 2 PT + situs), knowsAbout +4 domain; Organization ×2 dapat founder @id + sameAs (URL sendiri + situs + 5 sosmed); Person Azmi dapat sameAs; keywords meta +12 (3 gelar + handle + kombinasi pencarian); twitter.site + twitter.creator = @gunzz_krenzz
+- main-app.tsx footer: baris gelar amber "✦ Master Polymath · Sage Universal · The Ultimate Problem Solver ✦" di pita kredit + SocialRow (2×: blok brand & pita kredit); data dari BRAND SSOT
+- src/app/robots.ts (BARU): robots dinamis dari SITE_URL brand.ts; public/robots.txt statis DIHAPUS (konflik "conflicting public file and page file" → 500)
+- README.md: tabel kredit + gelar kreator, tabel baru "Official Social Profiles" EN & ID (5 platform × handle × link), blok penutup + baris "Find me / Temukan saya" 7 tautan
+- Verifikasi: lint bersih; robots.txt 200 (User-Agent * + Host + Sitemap); sitemap.xml 200; JSON-LD ter-parse — Person sameAs 8 URL, gelar tampil di jobTitle; 5 <a> sosial href+rel+aria-label benar; meta twitter:site/@gunzz_krenzz & keywords terisi; screenshot desktop + mobile (390px) — pita kredit & ikon sosial render sempurna, responsif; reload fresh 0 error konsol/hidrasi
+
+Stage Summary:
+- Sosial media resmi kini tertaut 4 lapis: footer UI (dofollow rel=me) → JSON-LD sameAs (Person+2 Organization) → meta twitter → README
+- Gelar Master Polymath · Sage Universal · The Ultimate Problem Solver tampil di footer, JSON-LD (jobTitle+honorificPrefix+description), keywords & README
+- sameAs adalah sinyal utama Google Knowledge Panel — semua prasyarat on-page terpenuhi; tinggal deploy ke domain live + Search Console + verifikasi situs di profil sosial (backlink rel=me balik ke domain)
+- SSOT brand.ts memudahkan penambahan sosial/kontak baru: 1 file → footer + JSON-LD + robots ikut semua

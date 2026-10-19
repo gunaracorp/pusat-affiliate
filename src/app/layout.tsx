@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { BRAND, SITE_URL, SITE_NAME } from "@/lib/brand";
 
 /**
  * ============================================================
@@ -9,17 +10,20 @@ import { Toaster } from "@/components/ui/toaster";
  * ============================================================
  *  Branding & kepemilikan (credits):
  *  • Created by      : Gugun Gunara
+ *    (Master Polymath · Sage Universal · The Ultimate Problem Solver)
  *  • Co-creator      : Muhammad Lutfi Azmi
  *  • Brand tim       : Prabudanling · Santri Angon
  *  • Support system  : PT Top Konsultan Internasional (topkonsultan.web.id)
  *  • Support system  : PT Digital Bisnis Manajemen (digiman.id)
  *
+ *  Sosial media (sameAs → Knowledge Panel Google):
+ *  • FB bossdanling · X @gunzz_krenzz · IG @prabudanling
+ *  • TikTok @gunaracorp · Threads @prabudanling
+ *
+ *  Sumber data tunggal: src/lib/brand.ts
  *  Domain kanonik dapat dioverride lewat env NEXT_PUBLIC_SITE_URL.
  * ============================================================
  */
-
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://topkonsultan.web.id";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,18 +35,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_NAME = "PUSATAFFILIATE";
 const SITE_TAGLINE =
   "Platform belajar & eksekusi affiliate marketing #1 — TikTok Shop, Shopee, Amazon, ClickBank & 500+ brand raksasa dunia. AI Studio, Link Tracker, Kalkulator Komisi, dan Super Admin Dashboard Web 6.0.";
 
 const CREATORS = {
-  founder: "Gugun Gunara",
-  coFounder: "Muhammad Lutfi Azmi",
-  brands: ["Prabudanling", "Santri Angon"],
-  companyTop: "PT Top Konsultan Internasional",
-  companyTopUrl: "https://topkonsultan.web.id",
-  companyDigi: "PT Digital Bisnis Manajemen",
-  companyDigiUrl: "https://digiman.id",
+  companyTop: BRAND.companies[0].name,
+  companyTopUrl: BRAND.companies[0].url,
+  companyDigi: BRAND.companies[1].name,
+  companyDigiUrl: BRAND.companies[1].url,
 };
 
 export const metadata: Metadata = {
@@ -66,6 +66,19 @@ export const metadata: Metadata = {
     "pusataffiliate",
     "pusat affiliate",
     "pusataffiliate by Gugun Gunara",
+    // Gelar & reputasi
+    "master polymath",
+    "sage universal",
+    "the ultimate problem solver",
+    "Gugun Gunara master polymath",
+    // Handle sosial media
+    "bossdanling",
+    "gunzz_krenzz",
+    "gunaracorp",
+    "Gugun Gunara bossdanling",
+    "Gugun Gunara gunzz_krenzz",
+    "Gugun Gunara instagram",
+    "Gugun Gunara tiktok",
     // Produk & niche
     "affiliate marketing",
     "TikTok Shop Affiliate",
@@ -103,6 +116,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@gunzz_krenzz",
+    creator: "@gunzz_krenzz",
     title: `${SITE_NAME} — Platform Affiliate #1 Dunia | by Gugun Gunara`,
     description: SITE_TAGLINE,
     images: ["/brand/hero.png"],
@@ -130,19 +145,26 @@ function buildJsonLd() {
         "@type": "Person",
         "@id": `${SITE_URL}/#person-gugun-gunara`,
         name: "Gugun Gunara",
+        alternateName: ["Gugun", "bossdanling", "gunzz_krenzz", "prabudanling", "gunaracorp"],
         url: SITE_URL,
-        jobTitle: "Founder & Chief Architect PUSATAFFILIATE",
+        jobTitle: `Founder & Chief Architect PUSATAFFILIATE — ${BRAND.titlesLine}`,
+        honorificPrefix: "Master Polymath",
         description:
-          "Kreator dan pengembang utama PUSATAFFILIATE — platform belajar & eksekusi affiliate marketing Web 6.0.",
+          "Master Polymath, Sage Universal, dan The Ultimate Problem Solver. Kreator & arsitek utama PUSATAFFILIATE — platform belajar & eksekusi affiliate marketing Web 6.0, didukung PT Top Konsultan Internasional dan PT Digital Bisnis Manajemen.",
         worksFor: [
           { "@id": `${SITE_URL}/#organization-top-konsultan` },
           { "@id": `${SITE_URL}/#organization-digiman` },
         ],
+        sameAs: BRAND.allProfileUrls,
         knowsAbout: [
           "Affiliate Marketing",
           "TikTok Shop Affiliate",
           "Shopee Affiliate",
           "Digital Business",
+          "Business Strategy",
+          "Content Creation",
+          "Problem Solving",
+          "Digital Transformation",
         ],
       },
       {
@@ -152,6 +174,7 @@ function buildJsonLd() {
         url: CREATORS.companyDigiUrl,
         jobTitle: "Co-Creator PUSATAFFILIATE",
         worksFor: [{ "@id": `${SITE_URL}/#organization-digiman` }],
+        sameAs: [CREATORS.companyDigiUrl, SITE_URL],
       },
       {
         "@type": "Organization",
@@ -159,16 +182,20 @@ function buildJsonLd() {
         name: CREATORS.companyTop,
         url: CREATORS.companyTopUrl,
         description:
-          "Support system PUSATAFFILIATE — platform affiliate by Gugun Gunara.",
+          "Support system PUSATAFFILIATE — platform affiliate by Gugun Gunara (Master Polymath).",
+        founder: { "@id": `${SITE_URL}/#person-gugun-gunara` },
+        sameAs: [CREATORS.companyTopUrl, SITE_URL, ...BRAND.socials.map((s) => s.url)],
       },
       {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization-digiman`,
         name: CREATORS.companyDigi,
-        alternateName: "Digiman",
+        alternateName: ["Digiman", "digiman.id"],
         url: CREATORS.companyDigiUrl,
         description:
-          "Support system PUSATAFFILIATE — platform affiliate by Gugun Gunara.",
+          "Support system PUSATAFFILIATE — platform affiliate by Gugun Gunara (Master Polymath).",
+        founder: { "@id": `${SITE_URL}/#person-muhammad-lutfi-azmi` },
+        sameAs: [CREATORS.companyDigiUrl, SITE_URL, ...BRAND.socials.map((s) => s.url)],
       },
       {
         "@type": "WebSite",
@@ -182,7 +209,7 @@ function buildJsonLd() {
         creator: { "@id": `${SITE_URL}/#person-gugun-gunara` },
         publisher: { "@id": `${SITE_URL}/#organization-top-konsultan` },
         keywords:
-          "Gugun Gunara, Muhammad Lutfi Azmi, Prabudanling, Santri Angon, PT Top Konsultan Internasional, PT Digital Bisnis Manajemen, pusataffiliate, affiliate marketing",
+          "Gugun Gunara, Muhammad Lutfi Azmi, Prabudanling, Santri Angon, PT Top Konsultan Internasional, PT Digital Bisnis Manajemen, pusataffiliate, affiliate marketing, master polymath, sage universal, the ultimate problem solver, bossdanling, gunzz_krenzz, gunaracorp",
       },
       {
         "@type": "SoftwareApplication",

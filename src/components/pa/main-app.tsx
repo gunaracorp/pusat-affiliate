@@ -31,6 +31,8 @@ import TrackerView from '@/components/pa/tracker'
 import AdminView from '@/components/pa/admin'
 import { ComingSoonView } from '@/components/pa/coming-soon'
 import { LiveDot } from '@/components/pa/shared'
+import { SocialRow } from '@/components/pa/social-icons'
+import { BRAND } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -221,6 +223,10 @@ export function MainApp() {
                 Dipersembahkan oleh <span className="font-semibold text-foreground">Gugun Gunara</span> bersama{' '}
                 <span className="text-foreground/90">Muhammad Lutfi Azmi</span> · Prabudanling · Santri Angon.
               </p>
+              <p className="mt-1.5 font-mono text-[11px] tracking-wide text-amber-300/90">
+                {BRAND.titlesLine}
+              </p>
+              <SocialRow className="mt-4" />
               <div className="mt-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 WEB 6.0 PROTOCOL • NODE CLUSTER 46/46
@@ -253,12 +259,16 @@ export function MainApp() {
                 <p className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl">
                   by <span className="text-gradient-neon">Gugun Gunara</span>
                 </p>
+                <p className="mt-1.5 font-mono text-[11px] tracking-[0.08em] text-amber-300/90">
+                  ✦ {BRAND.titlesLine} ✦
+                </p>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   Bersama{' '}
                   <span className="font-semibold text-foreground/90">Muhammad Lutfi Azmi</span>
                   <span className="mx-1.5 text-emerald-400/50">•</span>Prabudanling
                   <span className="mx-1.5 text-emerald-400/50">•</span>Santri Angon
                 </p>
+                <SocialRow className="mt-4" />
               </div>
               <div className="flex flex-wrap gap-3">
                 <a

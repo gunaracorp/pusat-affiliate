@@ -1,0 +1,752 @@
+     1→'use client'
+     2→
+     3→/**
+     4→ * ============================================================
+     5→ *  PUSATAFFILIATE — APP SHELL (Web 6.0)
+     6→ * ============================================================
+     7→ *  Kerangka navigasi utama. Struktur menu ditarik dari
+     8→ *  menu-config.tsx (sumber tunggal):
+     9→ *
+    10→ *  • Desktop : nav grup + dropdown berisi semua modul
+    11→ *  • Mobile  : bottom nav ringkas (5 slot) + Sheet peta menu
+    12→ *  • Footer  : sitemap lengkap 6 grup × 17 modul
+    13→ *
+    14→ *  Modul berstatus 'soon' tetap bisa dibuka → tampil
+    15→ *  ComingSoonView. Isi satu per satu dengan mengganti
+    16→ *  status di menu-config + daftarkan view di VIEWS bawah.
+    17→ * ============================================================
+    18→ */
+    19→
+    20→import { useEffect, useState } from 'react'
+    21→import { AnimatePresence, motion } from 'framer-motion'
+    22→import { ChevronDown, ChevronRight, Menu as MenuIcon, Rocket, ShieldCheck } from 'lucide-react'
+    23→import type { MenuItem, MenuGroup } from '@/components/pa/menu-config'
+    24→import { MENU, SOON_COUNT, findGroupOf, findItem } from '@/components/pa/menu-config'
+    25→import { HomeView } from '@/components/pa/home'
+    26→import MarketplaceView from '@/components/pa/marketplace'
+    27→import AcademyView from '@/components/pa/academy'
+    28→import { AIStudioView } from '@/components/pa/ai-studio'
+    29→import { CalculatorView } from '@/components/pa/calculator'
+    30→import TrackerView from '@/components/pa/tracker'
+    31→import AdminView from '@/components/pa/admin'
+    32→import { ComingSoonView } from '@/components/pa/coming-soon'
+    33→import { LiveDot } from '@/components/pa/shared'
+    34→import { cn } from '@/lib/utils'
+    35→import { Button } from '@/components/ui/button'
+    36→import {
+    37→  DropdownMenu,
+    38→  DropdownMenuContent,
+    39→  DropdownMenuItem,
+    40→  DropdownMenuSeparator,
+    41→  DropdownMenuTrigger,
+    42→} from '@/components/ui/dropdown-menu'
+    43→import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+    44→
+    45→export type ViewId = string
+    46→
+    47→/** Registry komponen view yang SUDAH SIAP. Modul baru: ganti status di
+    48→ *  menu-config.tsx jadi 'ready', lalu daftarkan komponennya di sini. */
+    49→const VIEWS: Record<string, React.ComponentType<{ onNavigate: (v: ViewId) => void }>> = {
+    50→  home: HomeView,
+    51→  marketplace: MarketplaceView,
+    52→  academy: AcademyView,
+    53→  ai: AIStudioView,
+    54→  calc: CalculatorView,
+    55→  tracker: TrackerView,
+    56→  admin: AdminView,
+    57→}
+    58→
+    59→/** Slot bottom-nav mobile → item tujuan utama tiap grup. */
+    60→const GROUP_TARGET: Record<string, string> = {
+    61→  pasar: 'marketplace',
+    62→  akademi: 'academy',
+    63→  senjata: 'ai',
+    64→}
+    65→
+    66→export function MainApp() {
+    67→  const [view, setView] = useState<ViewId>('home')
+    68→  const [sheetOpen, setSheetOpen] = useState(false)
+    69→
+    70→  function navigate(v: ViewId) {
+    71→    setView(v)
+    72→    setSheetOpen(false)
+    73→  }
+    74→
+    75→  useEffect(() => {
+    76→    window.scrollTo({ top: 0, behavior: 'smooth' })
+    77→  }, [view])
+    78→
+    79→  const activeItem = findItem(view) ?? findItem('home')!
+    80→  const activeGroupId = findGroupOf(activeItem.id)?.id
+    81→
+    82→  /** Item status 'soon' → render ComingSoonView; 'ready' → komponen asli. */
+    83→  function renderView() {
+    84→    if (activeItem.status === 'soon') {
+    85→      return <ComingSoonView item={activeItem} onNavigate={navigate} />
+    86→    }
+    87→    const Cmp = VIEWS[activeItem.id]
+    88→    if (!Cmp) return <ComingSoonView item={activeItem} onNavigate={navigate} />
+    89→    return <Cmp onNavigate={navigate} />
+    90→  }
+    91→
+    92→  const ActiveView = renderView()
+    93→
+    94→  return (
+    95→    <div className="flex min-h-screen flex-col">
+    96→      {/* ================= BACKGROUND ================= */}
+    97→      <div className="pointer-events-none fixed inset-0 -z-10">
+    98→        <div className="bg-grid absolute inset-0 opacity-60" />
+    99→        <div className="orb orb-emerald animate-orb top-[-10%] right-[-8%] h-[420px] w-[420px] opacity-15" />
+   100→        <div className="orb orb-gold animate-orb bottom-[-12%] left-[-10%] h-[380px] w-[380px] opacity-10 [animation-delay:-7s]" />
+   101→      </div>
+   102→
+   103→      {/* ================= HEADER ================= */}
+   104→      <header className="sticky top-0 z-50 border-b border-white/5 bg-background/70 backdrop-blur-xl">
+   105→        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+   106→          {/* Logo */}
+   107→          <button
+   108→            onClick={() => navigate('home')}
+   109→            className="flex shrink-0 items-center gap-2.5 transition-transform hover:scale-[1.02]"
+   110→            aria-label="Kembali ke Beranda"
+   111→          >
+   112→            <img
+   113→              src="/brand/logo.png"
+   114→              alt="Logo PUSATAFFILIATE"
+   115→              className="h-9 w-9 rounded-lg object-cover shadow-[0_0_14px_-2px_rgba(52,211,153,0.6)]"
+   116→              onError={(e) => {
+   117→                ;(e.target as HTMLImageElement).style.display = 'none'
+   118→              }}
+   119→            />
+   120→            <div className="text-left">
+   121→              <p className="font-display text-base leading-none font-extrabold tracking-tight">
+   122→                PUSAT<span className="text-gradient-neon">AFFILIATE</span>
+   123→              </p>
+   124→              <p className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground">WEB 6.0 ENGINE</p>
+   125→            </div>
+   126→          </button>
+   127→
+   128→          {/* ---------- DESKTOP NAV (grup + dropdown) ---------- */}
+   129→          <nav aria-label="Navigasi utama" className="hidden items-center gap-0.5 lg:flex">
+   130→            {/* Beranda — direct */}
+   131→            <NavButton active={activeItem.id === 'home'} gold={false} onClick={() => navigate('home')}>
+   132→              Beranda
+   133→            </NavButton>
+   134→
+   135→            {/* Grup dropdown: Pasar, Akademi, Senjata, Komunitas */}
+   136→            {MENU.filter((g) => !['utama', 'command'].includes(g.id)).map((g) => (
+   137→              <GroupDropdown
+   138→                key={g.id}
+   139→                group={g}
+   140→                active={activeGroupId === g.id}
+   141→                onNavigate={navigate}
+   142→              />
+   143→            ))}
+   144→
+   145→            {/* Admin — direct, gold */}
+   146→            <NavButton active={activeItem.id === 'admin'} gold onClick={() => navigate('admin')}>
+   147→              Admin Sakti
+   148→            </NavButton>
+   149→          </nav>
+   150→
+   151→          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+   152→            <span className="hidden xl:inline-flex">
+   153→              <LiveDot />
+   154→            </span>
+   155→            <button
+   156→              onClick={() => navigate('tracker')}
+   157→              className="btn-neon flex h-9 items-center gap-2 rounded-lg bg-emerald-400/15 px-4 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
+   158→            >
+   159→              <Rocket className="h-4 w-4" /> Mulai Cuan
+   160→            </button>
+   161→          </div>
+   162→
+   163→          {/* Mobile: sheet trigger */}
+   164→          <div className="lg:hidden">
+   165→            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+   166→              <SheetTrigger asChild>
+   167→                <button
+   168→                  id="nav-sheet-trigger"
+   169→                  suppressHydrationWarning
+   170→                  aria-label="Buka peta menu lengkap"
+   171→                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-emerald-300 transition hover:bg-emerald-400/10"
+   172→                >
+   173→                  <MenuIcon className="h-5 w-5" />
+   174→                </button>
+   175→              </SheetTrigger>
+   176→              <MenuSheetContent activeItem={activeItem} onNavigate={navigate} />
+   177→            </Sheet>
+   178→          </div>
+   179→        </div>
+   180→      </header>
+   181→
+   182→      {/* ================= MAIN ================= */}
+   183→      <main className="flex-1 pb-24 lg:pb-0">
+   184→        <AnimatePresence mode="wait">
+   185→          <motion.div
+   186→            key={activeItem.id}
+   187→            initial={{ opacity: 0, y: 14 }}
+   188→            animate={{ opacity: 1, y: 0 }}
+   189→            exit={{ opacity: 0, y: -10 }}
+   190→            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+   191→          >
+   192→            {ActiveView}
+   193→          </motion.div>
+   194→        </AnimatePresence>
+   195→      </main>
+   196→
+   197→      {/* ================= FOOTER (sticky bottom + sitemap) ================= */}
+   198→      <footer className="mt-auto border-t border-white/5 bg-background/60 pb-24 backdrop-blur-xl lg:pb-0">
+   199→        <div className="mx-auto max-w-7xl px-4 py-12">
+   200→          <div className="grid gap-10 lg:grid-cols-5">
+   201→            {/* Brand */}
+   202→            <div className="lg:col-span-2">
+   203→              <div className="flex items-center gap-2.5">
+   204→                <img
+   205→                  src="/brand/logo.png"
+   206→                  alt="Logo PUSATAFFILIATE"
+   207→                  className="h-9 w-9 rounded-lg object-cover"
+   208→                  onError={(e) => {
+   209→                    ;(e.target as HTMLImageElement).style.display = 'none'
+   210→                  }}
+   211→                />
+   212→                <p className="font-display text-lg font-extrabold">
+   213→                  PUSAT<span className="text-gradient-neon">AFFILIATE</span>
+   214→                </p>
+   215→              </div>
+   216→              <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+   217→                Markas belajar &amp; eksekusi affiliate komisi tertinggi dunia. Dari TikTok Shop sampai SaaS recurring
+   218→                — satu platform, satu tujuan: <span className="text-emerald-300">ratusan juta dollar</span>.
+   219→              </p>
+   220→              <p className="mt-2 text-sm text-muted-foreground">
+   221→                Dipersembahkan oleh <span className="font-semibold text-foreground">Gugun Gunara</span> bersama{' '}
+   222→                <span className="text-foreground/90">Muhammad Lutfi Azmi</span> · Prabudanling · Santri Angon.
+   223→              </p>
+   224→              <div className="mt-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+   225→                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+   226→                WEB 6.0 PROTOCOL • NODE CLUSTER 46/46
+   227→              </div>
+   228→            </div>
+   229→
+   230→            {/* Sitemap: 6 grup lengkap */}
+   231→            <nav aria-label="Peta situs" className="lg:col-span-3">
+   232→              <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">
+   233→                Peta Situs — {MENU.reduce((n, g) => n + g.items.length, 0)} Modul
+   234→              </p>
+   235→              <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3">
+   236→                {MENU.map((g) => (
+   237→                  <FooterGroup key={g.id} group={g} activeItem={activeItem.id} onNavigate={navigate} />
+   238→                ))}
+   239→              </div>
+   240→            </nav>
+   241→          </div>
+   242→
+   243→          {/* ============ PITA KREDIT & DUKUNGAN (branding SEO on-page) ============ */}
+   244→          <div
+   245→            id="kredit"
+   246→            className="mt-10 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.03] p-5 sm:p-6"
+   247→          >
+   248→            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+   249→              <div className="min-w-0">
+   250→                <p className="font-mono text-[10px] tracking-[0.25em] text-emerald-400/90 uppercase">
+   251→                  Dipersembahkan &amp; Didukung Oleh
+   252→                </p>
+   253→                <p className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl">
+   254→                  by <span className="text-gradient-neon">Gugun Gunara</span>
+   255→                </p>
+   256→                <p className="mt-1.5 text-sm text-muted-foreground">
+   257→                  Bersama{' '}
+   258→                  <span className="font-semibold text-foreground/90">Muhammad Lutfi Azmi</span>
+   259→                  <span className="mx-1.5 text-emerald-400/50">•</span>Prabudanling
+   260→                  <span className="mx-1.5 text-emerald-400/50">•</span>Santri Angon
+   261→                </p>
+   262→              </div>
+   263→              <div className="flex flex-wrap gap-3">
+   264→                <a
+   265→                  href="https://topkonsultan.web.id"
+   266→                  target="_blank"
+   267→                  rel="noopener noreferrer"
+   268→                  aria-label="PT Top Konsultan Internasional — topkonsultan.web.id"
+   269→                  className="glass-hover group flex min-w-[220px] flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-emerald-400/40"
+   270→                >
+   271→                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-lg">
+   272→                    🏢
+   273→                  </span>
+   274→                  <span className="min-w-0">
+   275→                    <span className="block text-sm leading-snug font-bold">PT Top Konsultan Internasional</span>
+   276→                    <span className="mt-0.5 block text-xs leading-snug text-emerald-300/80 group-hover:text-emerald-300">
+   277→                      topkonsultan.web.id — Support System
+   278→                    </span>
+   279→                  </span>
+   280→                </a>
+   281→                <a
+   282→                  href="https://digiman.id"
+   283→                  target="_blank"
+   284→                  rel="noopener noreferrer"
+   285→                  aria-label="PT Digital Bisnis Manajemen — digiman.id"
+   286→                  className="glass-hover group flex min-w-[220px] flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-amber-300/40"
+   287→                >
+   288→                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-amber-300/30 bg-amber-400/10 text-lg">
+   289→                    ⚙️
+   290→                  </span>
+   291→                  <span className="min-w-0">
+   292→                    <span className="block text-sm leading-snug font-bold">PT Digital Bisnis Manajemen</span>
+   293→                    <span className="mt-0.5 block text-xs leading-snug text-amber-200/80 group-hover:text-amber-200">
+   294→                      digiman.id — Support System
+   295→                    </span>
+   296→                  </span>
+   297→                </a>
+   298→              </div>
+   299→            </div>
+   300→          </div>
+   301→
+   302→          {/* Bottom bar */}
+   303→          <div className="mt-10 border-t border-white/5 pt-6">
+   304→            <p className="text-xs leading-relaxed text-muted-foreground">
+   305→              Platform edukasi &amp; simulasi. Statistik komisi, EPC, dan leaderboard merupakan data demonstrasi.
+   306→              Angka nyata bergantung pada eksekusi &amp; program resmi masing-masing brand.
+   307→            </p>
+   308→            <p className="mt-3 text-xs text-muted-foreground">
+   309→              © 2045 PUSATAFFILIATE Labs by{' '}
+   310→              <span className="font-semibold text-emerald-300">Gugun Gunara</span> — didukung{' '}
+   311→              <a
+   312→                href="https://topkonsultan.web.id"
+   313→                target="_blank"
+   314→                rel="noopener noreferrer"
+   315→                className="underline decoration-emerald-400/40 underline-offset-2 transition-colors hover:text-emerald-300"
+   316→              >
+   317→                PT Top Konsultan Internasional
+   318→              </a>{' '}
+   319→              &amp;{' '}
+   320→              <a
+   321→                href="https://digiman.id"
+   322→                target="_blank"
+   323→                rel="noopener noreferrer"
+   324→                className="underline decoration-amber-300/40 underline-offset-2 transition-colors hover:text-amber-200"
+   325→              >
+   326→                PT Digital Bisnis Manajemen
+   327→              </a>{' '}
+   328→              — Jakarta / Everywhere.
+   329→            </p>
+   330→          </div>
+   331→        </div>
+   332→      </footer>
+   333→
+   334→      {/* ================= MOBILE BOTTOM NAV ================= */}
+   335→      <BottomNav activeItem={activeItem} onNavigate={navigate} onOpenSheet={() => setSheetOpen(true)} />
+   336→    </div>
+   337→  )
+   338→}
+   339→
+   340→// =====================================================================
+   341→//  SUB-KOMPONEN NAVIGASI
+   342→// =====================================================================
+   343→
+   344→/** Tombol nav level-1 (Beranda / Admin) dengan underline motion. */
+   345→function NavButton({
+   346→  active,
+   347→  gold,
+   348→  onClick,
+   349→  children,
+   350→}: {
+   351→  active: boolean
+   352→  gold: boolean
+   353→  onClick: () => void
+   354→  children: React.ReactNode
+   355→}) {
+   356→  return (
+   357→    <button
+   358→      onClick={onClick}
+   359→      aria-current={active ? 'page' : undefined}
+   360→      className={cn(
+   361→        'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+   362→        active
+   363→          ? 'text-foreground'
+   364→          : gold
+   365→            ? 'text-amber-300/90 hover:text-amber-200'
+   366→            : 'text-muted-foreground hover:text-foreground'
+   367→      )}
+   368→    >
+   369→      {children}
+   370→      {active && (
+   371→        <motion.span
+   372→          layoutId="nav-underline"
+   373→          className="absolute inset-x-2 -bottom-[13px] h-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
+   374→        />
+   375→      )}
+   376→    </button>
+   377→  )
+   378→}
+   379→
+   380→/** Trigger + dropdown grup (desktop). Menampilkan semua modul grup
+   381→ *  lengkap dengan deskripsi & status LIVE / SOON. */
+   382→function GroupDropdown({
+   383→  group,
+   384→  active,
+   385→  onNavigate,
+   386→}: {
+   387→  group: MenuGroup
+   388→  active: boolean
+   389→  onNavigate: (v: ViewId) => void
+   390→}) {
+   391→  const GroupIcon = group.icon
+   392→  const readyCount = group.items.filter((i) => i.status === 'ready').length
+   393→
+   394→  // ID stabil eksplisit pada trigger → menimpa ID acak generate-an Radix
+   395→  // (useId) sehingga SSR & client selalu identik — mencegah hydration
+   396→  // mismatch. suppressHydrationWarning: pengaman untuk atribut internal
+   397→  // Radix (mis. aria-controls) yang bisa beda saat dev/HMR & tak berdampak.
+   398→  return (
+   399→    <DropdownMenu>
+   400→      <DropdownMenuTrigger asChild>
+   401→        <button
+   402→          id={`nav-${group.id}`}
+   403→          suppressHydrationWarning
+   404→          aria-haspopup="menu"
+   405→          className={cn(
+   406→            'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none',
+   407→            active
+   408→              ? 'text-foreground'
+   409→              : 'text-muted-foreground hover:text-foreground data-[state=open]:text-foreground'
+   410→          )}
+   411→        >
+   412→          <GroupIcon className="h-4 w-4" />
+   413→          {group.label}
+   414→          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+   415→          {active && (
+   416→            <motion.span
+   417→              layoutId="nav-underline"
+   418→              className="absolute inset-x-2 -bottom-[13px] h-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
+   419→            />
+   420→          )}
+   421→        </button>
+   422→      </DropdownMenuTrigger>
+   423→
+   424→      <DropdownMenuContent
+   425→        align="start"
+   426→        sideOffset={14}
+   427→        className="w-[22rem] border-white/10 bg-background/95 p-2 backdrop-blur-xl"
+   428→      >
+   429→        {/* header grup */}
+   430→        <div className="flex items-center justify-between gap-2 px-2 py-2">
+   431→          <div className="flex items-center gap-2.5">
+   432→            <span className="text-lg">{group.emoji}</span>
+   433→            <div>
+   434→              <p className="text-sm leading-tight font-bold">{group.label}</p>
+   435→              <p className="text-[11px] leading-tight text-muted-foreground">{group.tagline}</p>
+   436→            </div>
+   437→          </div>
+   438→          <span className="font-mono text-[9px] tracking-[0.2em] text-emerald-300/80 uppercase">
+   439→            {readyCount}/{group.items.length} live
+   440→          </span>
+   441→        </div>
+   442→        <DropdownMenuSeparator className="bg-white/5" />
+   443→
+   444→        {group.items.map((item) => (
+   445→          <DropdownItem key={item.id} item={item} onNavigate={onNavigate} />
+   446→        ))}
+   447→      </DropdownMenuContent>
+   448→    </DropdownMenu>
+   449→  )
+   450→}
+   451→
+   452→/** Baris item di dalam dropdown. 'soon' tetap bisa diklik → ComingSoon. */
+   453→function DropdownItem({ item, onNavigate }: { item: MenuItem; onNavigate: (v: ViewId) => void }) {
+   454→  const Icon = item.icon
+   455→  const soon = item.status === 'soon'
+   456→  return (
+   457→    <DropdownMenuItem asChild>
+   458→      <button
+   459→        onClick={() => onNavigate(item.id)}
+   460→        className={cn(
+   461→          'flex w-full cursor-pointer items-start gap-3 rounded-xl px-2 py-2.5 text-left outline-none',
+   462→          soon ? 'focus:bg-white/[0.04]' : 'focus:bg-emerald-400/10',
+   463→          item.gold && 'focus:bg-amber-400/10'
+   464→        )}
+   465→      >
+   466→      <span
+   467→        className={cn(
+   468→          'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border',
+   469→          item.gold
+   470→            ? 'border-amber-300/30 bg-amber-400/10 text-amber-300'
+   471→            : soon
+   472→              ? 'border-white/10 bg-white/5 text-muted-foreground'
+   473→              : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+   474→        )}
+   475→      >
+   476→        <Icon className="h-4 w-4" />
+   477→      </span>
+   478→      <span className="min-w-0 flex-1">
+   479→        <span className="flex items-center gap-2">
+   480→          <span className={cn('truncate text-sm font-semibold', soon && 'text-foreground/70')}>{item.label}</span>
+   481→          {soon ? (
+   482→            <span className="shrink-0 rounded-full border border-amber-300/30 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-amber-300 uppercase">
+   483→              Soon
+   484→            </span>
+   485→          ) : (
+   486→            <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-emerald-300 uppercase">
+   487→              Live
+   488→            </span>
+   489→          )}
+   490→        </span>
+   491→        <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-muted-foreground">{item.desc}</span>
+   492→      </span>
+   493→      </button>
+   494→    </DropdownMenuItem>
+   495→  )
+   496→}
+   497→
+   498→/** Satu grup di footer sitemap. */
+   499→function FooterGroup({
+   500→  group,
+   501→  activeItem,
+   502→  onNavigate,
+   503→}: {
+   504→  group: MenuGroup
+   505→  activeItem: string
+   506→  onNavigate: (v: ViewId) => void
+   507→}) {
+   508→  return (
+   509→    <div>
+   510→      <p className="flex items-center gap-1.5 text-sm font-bold">
+   511→        <span>{group.emoji}</span> {group.label}
+   512→      </p>
+   513→      <ul className="mt-3 space-y-2">
+   514→        {group.items.map((item) => (
+   515→          <li key={item.id}>
+   516→            <button
+   517→              onClick={() => onNavigate(item.id)}
+   518→              className={cn(
+   519→                'flex items-center gap-1.5 text-xs transition-colors',
+   520→                item.status === 'soon' ? 'text-muted-foreground/70 hover:text-emerald-300' : 'text-muted-foreground hover:text-emerald-300',
+   521→                activeItem === item.id && 'font-semibold text-emerald-300',
+   522→                item.gold && 'text-amber-300/80 hover:text-amber-200'
+   523→              )}
+   524→            >
+   525→              {item.label}
+   526→              {item.status === 'soon' && (
+   527→                <span className="rounded-sm border border-amber-300/20 px-1 font-mono text-[7px] tracking-wider text-amber-300/70 uppercase">
+   528→                  Soon
+   529→                </span>
+   530→              )}
+   531→            </button>
+   532→          </li>
+   533→        ))}
+   534→      </ul>
+   535→    </div>
+   536→  )
+   537→}
+   538→
+   539→/** Bottom nav mobile: 4 slot grup + 1 slot Menu (buka sheet). */
+   540→function BottomNav({
+   541→  activeItem,
+   542→  onNavigate,
+   543→  onOpenSheet,
+   544→}: {
+   545→  activeItem: MenuItem
+   546→  onNavigate: (v: ViewId) => void
+   547→  onOpenSheet: () => void
+   548→}) {
+   549→  const groupId = findGroupOf(activeItem.id)?.id
+   550→  const slots: { key: string; label: string; icon: React.ElementType; target?: string; active: boolean; gold?: boolean }[] = [
+   551→    {
+   552→      key: 'beranda',
+   553→      label: 'Home',
+   554→      icon: MENU[0].items[0].icon,
+   555→      target: 'home',
+   556→      active: activeItem.id === 'home',
+   557→    },
+   558→    {
+   559→      key: 'pasar',
+   560→      label: 'Pasar',
+   561→      icon: MENU[1].icon,
+   562→      target: GROUP_TARGET.pasar,
+   563→      active: groupId === 'pasar',
+   564→    },
+   565→    {
+   566→      key: 'akademi',
+   567→      label: 'Akademi',
+   568→      icon: MENU[2].icon,
+   569→      active: groupId === 'akademi',
+   570→      target: GROUP_TARGET.akademi,
+   571→    },
+   572→    {
+   573→      key: 'senjata',
+   574→      label: 'Senjata',
+   575→      icon: MENU[3].icon,
+   576→      active: groupId === 'senjata',
+   577→      target: GROUP_TARGET.senjata,
+   578→    },
+   579→  ]
+   580→
+   581→  return (
+   582→    <nav
+   583→      aria-label="Navigasi bawah"
+   584→      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-background/85 backdrop-blur-xl lg:hidden"
+   585→      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+   586→    >
+   587→      <div className="flex items-stretch justify-between gap-0.5 px-1 py-1.5">
+   588→        {slots.map((s) => {
+   589→          const Icon = s.icon
+   590→          return (
+   591→            <button
+   592→              key={s.key}
+   593→              onClick={() => s.target && onNavigate(s.target)}
+   594→              aria-current={s.active ? 'page' : undefined}
+   595→              className={cn(
+   596→                'flex min-w-[52px] flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors',
+   597→                s.active ? 'bg-emerald-400/10 text-emerald-300' : 'text-muted-foreground'
+   598→              )}
+   599→            >
+   600→              <Icon className="h-4.5 w-4.5" />
+   601→              {s.label}
+   602→            </button>
+   603→          )
+   604→        })}
+   605→        {/* Slot Menu → sheet peta lengkap */}
+   606→        <button
+   607→          onClick={onOpenSheet}
+   608→          aria-haspopup="dialog"
+   609→          className={cn(
+   610→            'flex min-w-[52px] flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors',
+   611→            activeItem.id === 'admin' ? 'bg-amber-400/10 text-amber-300' : 'text-muted-foreground'
+   612→          )}
+   613→        >
+   614→          <MenuIcon className="h-4.5 w-4.5" />
+   615→          Menu
+   616→        </button>
+   617→      </div>
+   618→    </nav>
+   619→  )
+   620→}
+   621→
+   622→/** Sheet peta menu lengkap (mobile) — semua grup & modul. */
+   623→function MenuSheetContent({ activeItem, onNavigate }: { activeItem: MenuItem; onNavigate: (v: ViewId) => void }) {
+   624→  return (
+   625→    <SheetContent
+   626→      side="right"
+   627→      className="flex w-[88vw] max-w-sm flex-col gap-0 overflow-hidden border-white/10 bg-background/95 p-0 backdrop-blur-xl sm:w-[22rem]"
+   628→    >
+   629→      {/* Header sheet */}
+   630→      <SheetHeader className="border-b border-white/5 px-4 py-4">
+   631→        <SheetTitle className="flex items-center gap-2.5">
+   632→          <img
+   633→            src="/brand/logo.png"
+   634→            alt="Logo PUSATAFFILIATE"
+   635→            className="h-8 w-8 rounded-lg object-cover"
+   636→            onError={(e) => {
+   637→              ;(e.target as HTMLImageElement).style.display = 'none'
+   638→            }}
+   639→          />
+   640→          <span className="font-display text-sm font-extrabold tracking-tight">
+   641→            PETA <span className="text-gradient-neon">ARMADA</span>
+   642→          </span>
+   643→          <span className="ml-auto font-mono text-[9px] tracking-[0.2em] text-muted-foreground">
+   644→            6 GRUP • {MENU.reduce((n, g) => n + g.items.length, 0)} MODUL
+   645→          </span>
+   646→        </SheetTitle>
+   647→      </SheetHeader>
+   648→
+   649→      {/* Daftar grup */}
+   650→      <div className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+   651→        {MENU.map((g) => (
+   652→          <div key={g.id} className="mb-3">
+   653→            <p className="mb-1.5 flex items-center gap-2 px-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
+   654→              <span className="text-sm">{g.emoji}</span>
+   655→              {g.label}
+   656→              <span className="h-px flex-1 bg-white/5" />
+   657→            </p>
+   658→            {g.items.map((item) => (
+   659→              <SheetRow
+   660→                key={item.id}
+   661→                item={item}
+   662→                active={activeItem.id === item.id}
+   663→                onNavigate={onNavigate}
+   664→              />
+   665→            ))}
+   666→          </div>
+   667→        ))}
+   668→      </div>
+   669→
+   670→      {/* Footer sheet */}
+   671→      <div className="space-y-2.5 border-t border-white/5 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+   672→        <Button
+   673→          onClick={() => onNavigate('tracker')}
+   674→          className="btn-neon h-11 w-full gap-2 rounded-xl bg-emerald-400/15 text-sm font-semibold text-emerald-200 hover:bg-emerald-400/25"
+   675→        >
+   676→          <Rocket className="h-4 w-4" /> Mulai Cuan Sekarang
+   677→        </Button>
+   678→        <p className="text-center font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+   679→          {SOON_COUNT} MODUL DALAM PENGERJAAN • WEB 6.0
+   680→        </p>
+   681→        <p className="text-center text-[10px] text-muted-foreground">
+   682→          by <span className="font-semibold text-emerald-300">Gugun Gunara</span> ·{' '}
+   683→          <span className="text-foreground/70">Top Konsultan × Digiman</span>
+   684→        </p>
+   685→      </div>
+   686→    </SheetContent>
+   687→  )
+   688→}
+   689→
+   690→/** Baris item dalam sheet — mirror DropdownItem dengan chevron. */
+   691→function SheetRow({
+   692→  item,
+   693→  active,
+   694→  onNavigate,
+   695→}: {
+   696→  item: MenuItem
+   697→  active: boolean
+   698→  onNavigate: (v: ViewId) => void
+   699→}) {
+   700→  const Icon = item.icon
+   701→  const soon = item.status === 'soon'
+   702→  return (
+   703→    <button
+   704→      onClick={() => onNavigate(item.id)}
+   705→      aria-current={active ? 'page' : undefined}
+   706→      className={cn(
+   707→        'flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors',
+   708→        active
+   709→          ? item.gold
+   710→            ? 'bg-amber-400/10'
+   711→            : 'bg-emerald-400/10'
+   712→          : soon
+   713→            ? 'hover:bg-white/[0.04]'
+   714→            : 'hover:bg-emerald-400/5'
+   715→      )}
+   716→    >
+   717→      <span
+   718→        className={cn(
+   719→          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border',
+   720→          item.gold
+   721→            ? 'border-amber-300/30 bg-amber-400/10 text-amber-300'
+   722→            : soon
+   723→              ? 'border-white/10 bg-white/5 text-muted-foreground'
+   724→              : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+   725→        )}
+   726→      >
+   727→        <Icon className="h-4 w-4" />
+   728→      </span>
+   729→      <span className="min-w-0 flex-1">
+   730→        <span className="flex items-center gap-2">
+   731→          <span className={cn('truncate text-sm font-semibold', soon && 'text-foreground/70')}>{item.label}</span>
+   732→          {soon ? (
+   733→            <span className="shrink-0 rounded-full border border-amber-300/30 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-amber-300 uppercase">
+   734→              Soon
+   735→            </span>
+   736→          ) : (
+   737→            <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-emerald-300 uppercase">
+   738→              Live
+   739→            </span>
+   740→          )}
+   741→        </span>
+   742→        <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">{item.desc}</span>
+   743→      </span>
+   744→      {active ? (
+   745→        <ChevronRight className="h-4 w-4 shrink-0 text-emerald-300" />
+   746→      ) : (
+   747→        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />
+   748→      )}
+   749→    </button>
+   750→  )
+   751→}
+   752→
