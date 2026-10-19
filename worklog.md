@@ -132,3 +132,18 @@ Stage Summary:
 - Struktur menu lengkap terpasang sebagai fondasi: 6 grup × 20 modul, semua bisa diakses — 7 modul LIVE, 13 modul tampil halaman "Coming Soon" siap diisi
 - File baru: menu-config.tsx, coming-soon.tsx; main-app.tsx dirombak total
 - Kontrak: view 'soon' → ComingSoonView otomatis; mengisi konten = 1 perubahan status + 1 entry di VIEWS
+---
+Task ID: 10
+Agent: main (orchestrator)
+Task: Fix hydration mismatch Radix (id/aria-controls) + buat README internasional bilingual EN/ID
+
+Work Log:
+- Root-cause error hidrasi: Radix generate id internal via useId() (triggerId/contentId) — bisa beda antara HTML SSR & bundle client saat dev/HMR. Inspeksi node_modules/@radix-ui/react-dropdown-menu: props kita disebar SETELAH prop bawaan → id eksplisit bisa menimpa
+- Fix main-app.tsx: (1) id stabil eksplisit pada 4 trigger dropdown (nav-pasar/akademi/senjata/komunitas) + sheet trigger (nav-sheet-trigger); (2) suppressHydrationWarning sebagai pengaman atribut internal Radix (aria-controls) yang harmless
+- Verifikasi browser: fresh load 0 error, reload 2x (skenario yang tadinya memicu mismatch) 0 error, dropdown tetap berfungsi, semua id stabil terpasang. Lint bersih
+- Tambah script db:seed ke package.json (bun prisma/seed.ts)
+- Buat README.md standar internasional dwibahasa (EN lengkap + versi Bahasa Indonesia lengkap): badges, arsitektur diagram ASCII, 20 modul × status, tech stack, getting started, environment, 9 scripts, struktur proyek, referensi API lengkap (query/body/response), 7 model data, kemampuan AI, peta navigasi + panduan aktivasi modul SOON, design system, roadmap, disclaimer, contributing, license
+
+Stage Summary:
+- Error hidrasi Radix tuntas: id eksplisit menimpa generate-an useId + suppressHydrationWarning; teruji 0 error pada reload berulang
+- README.md baru dibuat (sebelumnya tidak ada), bilingual EN/ID, terdokumentasi akurat dari kode aktual (9 endpoint, 7 model, 20 modul)

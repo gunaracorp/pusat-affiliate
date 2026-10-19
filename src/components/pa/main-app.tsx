@@ -165,6 +165,8 @@ export function MainApp() {
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
                 <button
+                  id="nav-sheet-trigger"
+                  suppressHydrationWarning
                   aria-label="Buka peta menu lengkap"
                   className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-emerald-300 transition hover:bg-emerald-400/10"
                 >
@@ -307,10 +309,16 @@ function GroupDropdown({
   const GroupIcon = group.icon
   const readyCount = group.items.filter((i) => i.status === 'ready').length
 
+  // ID stabil eksplisit pada trigger → menimpa ID acak generate-an Radix
+  // (useId) sehingga SSR & client selalu identik — mencegah hydration
+  // mismatch. suppressHydrationWarning: pengaman untuk atribut internal
+  // Radix (mis. aria-controls) yang bisa beda saat dev/HMR & tak berdampak.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
+          id={`nav-${group.id}`}
+          suppressHydrationWarning
           aria-haspopup="menu"
           className={cn(
             'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none',
