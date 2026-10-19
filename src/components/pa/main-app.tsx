@@ -1,8 +1,27 @@
 'use client'
 
+/**
+ * ============================================================
+ *  PUSATAFFILIATE — APP SHELL (Web 6.0)
+ * ============================================================
+ *  Kerangka navigasi utama. Struktur menu ditarik dari
+ *  menu-config.tsx (sumber tunggal):
+ *
+ *  • Desktop : nav grup + dropdown berisi semua modul
+ *  • Mobile  : bottom nav ringkas (5 slot) + Sheet peta menu
+ *  • Footer  : sitemap lengkap 6 grup × 17 modul
+ *
+ *  Modul berstatus 'soon' tetap bisa dibuka → tampil
+ *  ComingSoonView. Isi satu per satu dengan mengganti
+ *  status di menu-config + daftarkan view di VIEWS bawah.
+ * ============================================================
+ */
+
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Brain, Calculator, Crown, GraduationCap, Home, Link2, Rocket, ShieldCheck, Store } from 'lucide-react'
+import { ChevronDown, ChevronRight, Menu as MenuIcon, Rocket, ShieldCheck } from 'lucide-react'
+import type { MenuItem, MenuGroup } from '@/components/pa/menu-config'
+import { MENU, SOON_COUNT, findGroupOf, findItem } from '@/components/pa/menu-config'
 import { HomeView } from '@/components/pa/home'
 import MarketplaceView from '@/components/pa/marketplace'
 import AcademyView from '@/components/pa/academy'
@@ -10,22 +29,24 @@ import { AIStudioView } from '@/components/pa/ai-studio'
 import { CalculatorView } from '@/components/pa/calculator'
 import TrackerView from '@/components/pa/tracker'
 import AdminView from '@/components/pa/admin'
+import { ComingSoonView } from '@/components/pa/coming-soon'
 import { LiveDot } from '@/components/pa/shared'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
-export type ViewId = 'home' | 'marketplace' | 'academy' | 'ai' | 'calc' | 'tracker' | 'admin'
+export type ViewId = string
 
-const NAV: { id: ViewId; label: string; icon: React.ElementType; short: string; gold?: boolean }[] = [
-  { id: 'home', label: 'Beranda', short: 'Home', icon: Home },
-  { id: 'marketplace', label: 'Marketplace', short: 'Market', icon: Store },
-  { id: 'academy', label: 'Akademi', short: 'Akademi', icon: GraduationCap },
-  { id: 'ai', label: 'AI Studio', short: 'AI', icon: Brain },
-  { id: 'calc', label: 'Kalkulator', short: 'Hitung', icon: Calculator },
-  { id: 'tracker', label: 'Tracker', short: 'Track', icon: Link2 },
-  { id: 'admin', label: 'Admin Sakti', short: 'Admin', icon: Crown, gold: true },
-]
-
-const VIEWS: Record<ViewId, React.ComponentType<{ onNavigate: (v: ViewId) => void }>> = {
+/** Registry komponen view yang SUDAH SIAP. Modul baru: ganti status di
+ *  menu-config.tsx jadi 'ready', lalu daftarkan komponennya di sini. */
+const VIEWS: Record<string, React.ComponentType<{ onNavigate: (v: ViewId) => void }>> = {
   home: HomeView,
   marketplace: MarketplaceView,
   academy: AcademyView,
@@ -35,33 +56,67 @@ const VIEWS: Record<ViewId, React.ComponentType<{ onNavigate: (v: ViewId) => voi
   admin: AdminView,
 }
 
+/** Slot bottom-nav mobile → item tujuan utama tiap grup. */
+const GROUP_TARGET: Record<string, string> = {
+  pasar: 'marketplace',
+  akademi: 'academy',
+  senjata: 'ai',
+}
+
 export function MainApp() {
   const [view, setView] = useState<ViewId>('home')
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   function navigate(v: ViewId) {
     setView(v)
+    setSheetOpen(false)
   }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [view])
 
-  const ActiveView = VIEWS[view]
+  const activeItem = findItem(view) ?? findItem('home')!
+  const activeGroupId = findGroupOf(activeItem.id)?.id
+
+  /** Item status 'soon' → render ComingSoonView; 'ready' → komponen asli. */
+  function renderView() {
+    if (activeItem.status === 'soon') {
+      return <ComingSoonView item={activeItem} onNavigate={navigate} />
+    }
+    const Cmp = VIEWS[activeItem.id]
+    if (!Cmp) return <ComingSoonView item={activeItem} onNavigate={navigate} />
+    return <Cmp onNavigate={navigate} />
+  }
+
+  const ActiveView = renderView()
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Background layer */}
+      {/* ================= BACKGROUND ================= */}
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-grid opacity-60" />
+        <div className="bg-grid absolute inset-0 opacity-60" />
         <div className="orb orb-emerald animate-orb top-[-10%] right-[-8%] h-[420px] w-[420px] opacity-15" />
         <div className="orb orb-gold animate-orb bottom-[-12%] left-[-10%] h-[380px] w-[380px] opacity-10 [animation-delay:-7s]" />
       </div>
 
-      {/* ============ HEADER ============ */}
+      {/* ================= HEADER ================= */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-background/70 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
-          <button onClick={() => navigate('home')} className="flex items-center gap-2.5 transition-transform hover:scale-[1.02]">
-            <img src="/brand/logo.png" alt="Logo PUSATAFFILIATE" className="h-9 w-9 rounded-lg object-cover shadow-[0_0_14px_-2px_rgba(52,211,153,0.6)]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+          {/* Logo */}
+          <button
+            onClick={() => navigate('home')}
+            className="flex shrink-0 items-center gap-2.5 transition-transform hover:scale-[1.02]"
+            aria-label="Kembali ke Beranda"
+          >
+            <img
+              src="/brand/logo.png"
+              alt="Logo PUSATAFFILIATE"
+              className="h-9 w-9 rounded-lg object-cover shadow-[0_0_14px_-2px_rgba(52,211,153,0.6)]"
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
             <div className="text-left">
               <p className="font-display text-base leading-none font-extrabold tracking-tight">
                 PUSAT<span className="text-gradient-neon">AFFILIATE</span>
@@ -70,30 +125,33 @@ export function MainApp() {
             </div>
           </button>
 
-          {/* Desktop nav */}
-          <nav aria-label="Navigasi utama" className="hidden items-center gap-1 lg:flex">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => navigate(n.id)}
-                aria-current={view === n.id ? 'page' : undefined}
-                className={cn(
-                  'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  view === n.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
-                  n.gold && 'text-amber-300/90 hover:text-amber-200'
-                )}
-              >
-                <n.icon className="h-4 w-4" />
-                {n.label}
-                {view === n.id && (
-                  <motion.span layoutId="nav-underline" className="absolute inset-x-2 -bottom-[13px] h-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-amber-300" />
-                )}
-              </button>
+          {/* ---------- DESKTOP NAV (grup + dropdown) ---------- */}
+          <nav aria-label="Navigasi utama" className="hidden items-center gap-0.5 lg:flex">
+            {/* Beranda — direct */}
+            <NavButton active={activeItem.id === 'home'} gold={false} onClick={() => navigate('home')}>
+              Beranda
+            </NavButton>
+
+            {/* Grup dropdown: Pasar, Akademi, Senjata, Komunitas */}
+            {MENU.filter((g) => !['utama', 'command'].includes(g.id)).map((g) => (
+              <GroupDropdown
+                key={g.id}
+                group={g}
+                active={activeGroupId === g.id}
+                onNavigate={navigate}
+              />
             ))}
+
+            {/* Admin — direct, gold */}
+            <NavButton active={activeItem.id === 'admin'} gold onClick={() => navigate('admin')}>
+              Admin Sakti
+            </NavButton>
           </nav>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <LiveDot />
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <span className="hidden xl:inline-flex">
+              <LiveDot />
+            </span>
             <button
               onClick={() => navigate('tracker')}
               className="btn-neon flex h-9 items-center gap-2 rounded-lg bg-emerald-400/15 px-4 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
@@ -102,60 +160,85 @@ export function MainApp() {
             </button>
           </div>
 
-          {/* Mobile status */}
-          <div className="lg:hidden"><LiveDot /></div>
+          {/* Mobile: sheet trigger */}
+          <div className="lg:hidden">
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <button
+                  aria-label="Buka peta menu lengkap"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-emerald-300 transition hover:bg-emerald-400/10"
+                >
+                  <MenuIcon className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
+              <MenuSheetContent activeItem={activeItem} onNavigate={navigate} />
+            </Sheet>
+          </div>
         </div>
       </header>
 
-      {/* ============ MAIN ============ */}
+      {/* ================= MAIN ================= */}
       <main className="flex-1 pb-24 lg:pb-0">
         <AnimatePresence mode="wait">
           <motion.div
-            key={view}
+            key={activeItem.id}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <ActiveView onNavigate={navigate} />
+            {ActiveView}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* ============ FOOTER (sticky bottom) ============ */}
-      <footer className="mt-auto border-t border-white/5 bg-background/60 pb-20 backdrop-blur-xl lg:pb-0">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <img src="/brand/logo.png" alt="Logo PUSATAFFILIATE" className="h-9 w-9 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-              <p className="font-display text-lg font-extrabold">
-                PUSAT<span className="text-gradient-neon">AFFILIATE</span>
+      {/* ================= FOOTER (sticky bottom + sitemap) ================= */}
+      <footer className="mt-auto border-t border-white/5 bg-background/60 pb-24 backdrop-blur-xl lg:pb-0">
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <div className="grid gap-10 lg:grid-cols-5">
+            {/* Brand */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-2.5">
+                <img
+                  src="/brand/logo.png"
+                  alt="Logo PUSATAFFILIATE"
+                  className="h-9 w-9 rounded-lg object-cover"
+                  onError={(e) => {
+                    ;(e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+                <p className="font-display text-lg font-extrabold">
+                  PUSAT<span className="text-gradient-neon">AFFILIATE</span>
+                </p>
+              </div>
+              <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                Markas belajar &amp; eksekusi affiliate komisi tertinggi dunia. Dari TikTok Shop sampai SaaS recurring
+                — satu platform, satu tujuan: <span className="text-emerald-300">ratusan juta dollar</span>.
               </p>
+              <div className="mt-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                WEB 6.0 PROTOCOL • NODE CLUSTER 46/46
+              </div>
             </div>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Markas belajar & eksekusi affiliate komisi tertinggi dunia. Dari TikTok Shop sampai SaaS recurring — satu platform, satu tujuan: <span className="text-emerald-300">ratusan juta dollar</span>.
-            </p>
-            <div className="mt-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              WEB 6.0 PROTOCOL • NODE CLUSTER 46/46
-            </div>
+
+            {/* Sitemap: 6 grup lengkap */}
+            <nav aria-label="Peta situs" className="lg:col-span-3">
+              <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">
+                Peta Situs — {MENU.reduce((n, g) => n + g.items.length, 0)} Modul
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3">
+                {MENU.map((g) => (
+                  <FooterGroup key={g.id} group={g} activeItem={activeItem.id} onNavigate={navigate} />
+                ))}
+              </div>
+            </nav>
           </div>
-          <nav aria-label="Navigasi footer">
-            <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">Ekspedisi</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              {NAV.slice(1, 6).map((n) => (
-                <li key={n.id}>
-                  <button onClick={() => navigate(n.id)} className="text-muted-foreground transition-colors hover:text-emerald-300">
-                    {n.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">Transparansi</p>
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Platform edukasi & simulasi. Statistik komisi, EPC, dan leaderboard merupakan data demonstrasi. Angka nyata bergantung pada eksekusi & program resmi masing-masing brand.
+
+          {/* Bottom bar */}
+          <div className="mt-10 border-t border-white/5 pt-6">
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Platform edukasi &amp; simulasi. Statistik komisi, EPC, dan leaderboard merupakan data demonstrasi.
+              Angka nyata bergantung pada eksekusi &amp; program resmi masing-masing brand.
             </p>
             <p className="mt-3 text-xs text-muted-foreground">
               © 2045 PUSATAFFILIATE Labs — Jakarta / Everywhere.
@@ -164,28 +247,411 @@ export function MainApp() {
         </div>
       </footer>
 
-      {/* ============ MOBILE BOTTOM NAV ============ */}
-      <nav
-        aria-label="Navigasi bawah"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-background/85 backdrop-blur-xl lg:hidden"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      {/* ================= MOBILE BOTTOM NAV ================= */}
+      <BottomNav activeItem={activeItem} onNavigate={navigate} onOpenSheet={() => setSheetOpen(true)} />
+    </div>
+  )
+}
+
+// =====================================================================
+//  SUB-KOMPONEN NAVIGASI
+// =====================================================================
+
+/** Tombol nav level-1 (Beranda / Admin) dengan underline motion. */
+function NavButton({
+  active,
+  gold,
+  onClick,
+  children,
+}: {
+  active: boolean
+  gold: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        active
+          ? 'text-foreground'
+          : gold
+            ? 'text-amber-300/90 hover:text-amber-200'
+            : 'text-muted-foreground hover:text-foreground'
+      )}
+    >
+      {children}
+      {active && (
+        <motion.span
+          layoutId="nav-underline"
+          className="absolute inset-x-2 -bottom-[13px] h-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
+        />
+      )}
+    </button>
+  )
+}
+
+/** Trigger + dropdown grup (desktop). Menampilkan semua modul grup
+ *  lengkap dengan deskripsi & status LIVE / SOON. */
+function GroupDropdown({
+  group,
+  active,
+  onNavigate,
+}: {
+  group: MenuGroup
+  active: boolean
+  onNavigate: (v: ViewId) => void
+}) {
+  const GroupIcon = group.icon
+  const readyCount = group.items.filter((i) => i.status === 'ready').length
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-haspopup="menu"
+          className={cn(
+            'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none',
+            active
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground data-[state=open]:text-foreground'
+          )}
+        >
+          <GroupIcon className="h-4 w-4" />
+          {group.label}
+          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          {active && (
+            <motion.span
+              layoutId="nav-underline"
+              className="absolute inset-x-2 -bottom-[13px] h-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
+            />
+          )}
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="start"
+        sideOffset={14}
+        className="w-[22rem] border-white/10 bg-background/95 p-2 backdrop-blur-xl"
       >
-        <div className="flex items-stretch justify-between gap-0.5 overflow-x-auto px-1 py-1.5">
-          {NAV.map((n) => (
+        {/* header grup */}
+        <div className="flex items-center justify-between gap-2 px-2 py-2">
+          <div className="flex items-center gap-2.5">
+            <span className="text-lg">{group.emoji}</span>
+            <div>
+              <p className="text-sm leading-tight font-bold">{group.label}</p>
+              <p className="text-[11px] leading-tight text-muted-foreground">{group.tagline}</p>
+            </div>
+          </div>
+          <span className="font-mono text-[9px] tracking-[0.2em] text-emerald-300/80 uppercase">
+            {readyCount}/{group.items.length} live
+          </span>
+        </div>
+        <DropdownMenuSeparator className="bg-white/5" />
+
+        {group.items.map((item) => (
+          <DropdownItem key={item.id} item={item} onNavigate={onNavigate} />
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/** Baris item di dalam dropdown. 'soon' tetap bisa diklik → ComingSoon. */
+function DropdownItem({ item, onNavigate }: { item: MenuItem; onNavigate: (v: ViewId) => void }) {
+  const Icon = item.icon
+  const soon = item.status === 'soon'
+  return (
+    <DropdownMenuItem asChild>
+      <button
+        onClick={() => onNavigate(item.id)}
+        className={cn(
+          'flex w-full cursor-pointer items-start gap-3 rounded-xl px-2 py-2.5 text-left outline-none',
+          soon ? 'focus:bg-white/[0.04]' : 'focus:bg-emerald-400/10',
+          item.gold && 'focus:bg-amber-400/10'
+        )}
+      >
+      <span
+        className={cn(
+          'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border',
+          item.gold
+            ? 'border-amber-300/30 bg-amber-400/10 text-amber-300'
+            : soon
+              ? 'border-white/10 bg-white/5 text-muted-foreground'
+              : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className={cn('truncate text-sm font-semibold', soon && 'text-foreground/70')}>{item.label}</span>
+          {soon ? (
+            <span className="shrink-0 rounded-full border border-amber-300/30 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-amber-300 uppercase">
+              Soon
+            </span>
+          ) : (
+            <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-emerald-300 uppercase">
+              Live
+            </span>
+          )}
+        </span>
+        <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-muted-foreground">{item.desc}</span>
+      </span>
+      </button>
+    </DropdownMenuItem>
+  )
+}
+
+/** Satu grup di footer sitemap. */
+function FooterGroup({
+  group,
+  activeItem,
+  onNavigate,
+}: {
+  group: MenuGroup
+  activeItem: string
+  onNavigate: (v: ViewId) => void
+}) {
+  return (
+    <div>
+      <p className="flex items-center gap-1.5 text-sm font-bold">
+        <span>{group.emoji}</span> {group.label}
+      </p>
+      <ul className="mt-3 space-y-2">
+        {group.items.map((item) => (
+          <li key={item.id}>
             <button
-              key={n.id}
-              onClick={() => navigate(n.id)}
+              onClick={() => onNavigate(item.id)}
               className={cn(
-                'flex min-w-[52px] flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors',
-                view === n.id ? (n.gold ? 'bg-amber-400/10 text-amber-300' : 'bg-emerald-400/10 text-emerald-300') : 'text-muted-foreground'
+                'flex items-center gap-1.5 text-xs transition-colors',
+                item.status === 'soon' ? 'text-muted-foreground/70 hover:text-emerald-300' : 'text-muted-foreground hover:text-emerald-300',
+                activeItem === item.id && 'font-semibold text-emerald-300',
+                item.gold && 'text-amber-300/80 hover:text-amber-200'
               )}
             >
-              <n.icon className="h-4.5 w-4.5" />
-              {n.short}
+              {item.label}
+              {item.status === 'soon' && (
+                <span className="rounded-sm border border-amber-300/20 px-1 font-mono text-[7px] tracking-wider text-amber-300/70 uppercase">
+                  Soon
+                </span>
+              )}
             </button>
-          ))}
-        </div>
-      </nav>
+          </li>
+        ))}
+      </ul>
     </div>
+  )
+}
+
+/** Bottom nav mobile: 4 slot grup + 1 slot Menu (buka sheet). */
+function BottomNav({
+  activeItem,
+  onNavigate,
+  onOpenSheet,
+}: {
+  activeItem: MenuItem
+  onNavigate: (v: ViewId) => void
+  onOpenSheet: () => void
+}) {
+  const groupId = findGroupOf(activeItem.id)?.id
+  const slots: { key: string; label: string; icon: React.ElementType; target?: string; active: boolean; gold?: boolean }[] = [
+    {
+      key: 'beranda',
+      label: 'Home',
+      icon: MENU[0].items[0].icon,
+      target: 'home',
+      active: activeItem.id === 'home',
+    },
+    {
+      key: 'pasar',
+      label: 'Pasar',
+      icon: MENU[1].icon,
+      target: GROUP_TARGET.pasar,
+      active: groupId === 'pasar',
+    },
+    {
+      key: 'akademi',
+      label: 'Akademi',
+      icon: MENU[2].icon,
+      active: groupId === 'akademi',
+      target: GROUP_TARGET.akademi,
+    },
+    {
+      key: 'senjata',
+      label: 'Senjata',
+      icon: MENU[3].icon,
+      active: groupId === 'senjata',
+      target: GROUP_TARGET.senjata,
+    },
+  ]
+
+  return (
+    <nav
+      aria-label="Navigasi bawah"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-background/85 backdrop-blur-xl lg:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="flex items-stretch justify-between gap-0.5 px-1 py-1.5">
+        {slots.map((s) => {
+          const Icon = s.icon
+          return (
+            <button
+              key={s.key}
+              onClick={() => s.target && onNavigate(s.target)}
+              aria-current={s.active ? 'page' : undefined}
+              className={cn(
+                'flex min-w-[52px] flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors',
+                s.active ? 'bg-emerald-400/10 text-emerald-300' : 'text-muted-foreground'
+              )}
+            >
+              <Icon className="h-4.5 w-4.5" />
+              {s.label}
+            </button>
+          )
+        })}
+        {/* Slot Menu → sheet peta lengkap */}
+        <button
+          onClick={onOpenSheet}
+          aria-haspopup="dialog"
+          className={cn(
+            'flex min-w-[52px] flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors',
+            activeItem.id === 'admin' ? 'bg-amber-400/10 text-amber-300' : 'text-muted-foreground'
+          )}
+        >
+          <MenuIcon className="h-4.5 w-4.5" />
+          Menu
+        </button>
+      </div>
+    </nav>
+  )
+}
+
+/** Sheet peta menu lengkap (mobile) — semua grup & modul. */
+function MenuSheetContent({ activeItem, onNavigate }: { activeItem: MenuItem; onNavigate: (v: ViewId) => void }) {
+  return (
+    <SheetContent
+      side="right"
+      className="flex w-[88vw] max-w-sm flex-col gap-0 overflow-hidden border-white/10 bg-background/95 p-0 backdrop-blur-xl sm:w-[22rem]"
+    >
+      {/* Header sheet */}
+      <SheetHeader className="border-b border-white/5 px-4 py-4">
+        <SheetTitle className="flex items-center gap-2.5">
+          <img
+            src="/brand/logo.png"
+            alt="Logo PUSATAFFILIATE"
+            className="h-8 w-8 rounded-lg object-cover"
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+          <span className="font-display text-sm font-extrabold tracking-tight">
+            PETA <span className="text-gradient-neon">ARMADA</span>
+          </span>
+          <span className="ml-auto font-mono text-[9px] tracking-[0.2em] text-muted-foreground">
+            6 GRUP • {MENU.reduce((n, g) => n + g.items.length, 0)} MODUL
+          </span>
+        </SheetTitle>
+      </SheetHeader>
+
+      {/* Daftar grup */}
+      <div className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {MENU.map((g) => (
+          <div key={g.id} className="mb-3">
+            <p className="mb-1.5 flex items-center gap-2 px-1 font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
+              <span className="text-sm">{g.emoji}</span>
+              {g.label}
+              <span className="h-px flex-1 bg-white/5" />
+            </p>
+            {g.items.map((item) => (
+              <SheetRow
+                key={item.id}
+                item={item}
+                active={activeItem.id === item.id}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Footer sheet */}
+      <div className="space-y-2.5 border-t border-white/5 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <Button
+          onClick={() => onNavigate('tracker')}
+          className="btn-neon h-11 w-full gap-2 rounded-xl bg-emerald-400/15 text-sm font-semibold text-emerald-200 hover:bg-emerald-400/25"
+        >
+          <Rocket className="h-4 w-4" /> Mulai Cuan Sekarang
+        </Button>
+        <p className="text-center font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
+          {SOON_COUNT} MODUL DALAM PENGERJAAN • WEB 6.0
+        </p>
+      </div>
+    </SheetContent>
+  )
+}
+
+/** Baris item dalam sheet — mirror DropdownItem dengan chevron. */
+function SheetRow({
+  item,
+  active,
+  onNavigate,
+}: {
+  item: MenuItem
+  active: boolean
+  onNavigate: (v: ViewId) => void
+}) {
+  const Icon = item.icon
+  const soon = item.status === 'soon'
+  return (
+    <button
+      onClick={() => onNavigate(item.id)}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors',
+        active
+          ? item.gold
+            ? 'bg-amber-400/10'
+            : 'bg-emerald-400/10'
+          : soon
+            ? 'hover:bg-white/[0.04]'
+            : 'hover:bg-emerald-400/5'
+      )}
+    >
+      <span
+        className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border',
+          item.gold
+            ? 'border-amber-300/30 bg-amber-400/10 text-amber-300'
+            : soon
+              ? 'border-white/10 bg-white/5 text-muted-foreground'
+              : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className={cn('truncate text-sm font-semibold', soon && 'text-foreground/70')}>{item.label}</span>
+          {soon ? (
+            <span className="shrink-0 rounded-full border border-amber-300/30 bg-amber-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-amber-300 uppercase">
+              Soon
+            </span>
+          ) : (
+            <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[8px] font-bold tracking-[0.15em] text-emerald-300 uppercase">
+              Live
+            </span>
+          )}
+        </span>
+        <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">{item.desc}</span>
+      </span>
+      {active ? (
+        <ChevronRight className="h-4 w-4 shrink-0 text-emerald-300" />
+      ) : (
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />
+      )}
+    </button>
   )
 }

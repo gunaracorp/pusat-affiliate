@@ -115,3 +115,20 @@ Work Log:
 
 Stage Summary:
 - Semua golden path teruji di browser. Aplikasi SIAP. Artefak: 8 komponen pa/*, 9 API, schema 6 model, seed 20 program + 8 kursus + leaderboard.
+---
+Task ID: 9
+Agent: main (orchestrator)
+Task: Rapikan & lengkapi struktur menu (permintaan user: "struktur menu buat dulu yang lengkap, nanti kita isi satu satu")
+
+Work Log:
+- Buat src/components/pa/menu-config.tsx — SSOT struktur menu: 6 grup (Utama/Pasar/Akademi/Senjata/Komunitas/Command Center) × 20 item (7 ready + 13 soon), tiap item punya id/label/icon/desc/status/progress/features. Cara isi modul baru: ganti status 'soon'→'ready' + daftar view di VIEWS registry
+- Buat src/components/pa/coming-soon.tsx — placeholder premium untuk item 'soon': icon glow, badge SEGERA HADIR, progress bar pembangunan, daftar fitur, jalan pintas ke Marketplace/AI Studio
+- Rombak main-app.tsx: desktop nav grup + DropdownMenu (badge LIVE/SOON + counter "n/m live"), mobile bottom nav 5 slot (Home/Pasar/Akademi/Senjata/Menu), Sheet "PETA ARMADA" berisi seluruh struktur, footer sitemap 6 kolom grup, hitungan modul dinamis
+- Fix bug: dropdown tidak menutup setelah klik item → bungkus item dengan DropdownMenuItem asChild
+- Fix: hitung modul sheet jadi dinamis (20) + footer sheet "13 MODUL DALAM PENGERJAAN"
+- Verifikasi browser (desktop + mobile 390x844): dropdown, coming soon page (Trending 30%/Duel 15%/Glosarium 40%), sheet navigasi, bottom nav group slot → AI Studio, footer Admin Sakti. Lint bersih, console bersih (error "1 Issue" hanya Fast Refresh stale)
+
+Stage Summary:
+- Struktur menu lengkap terpasang sebagai fondasi: 6 grup × 20 modul, semua bisa diakses — 7 modul LIVE, 13 modul tampil halaman "Coming Soon" siap diisi
+- File baru: menu-config.tsx, coming-soon.tsx; main-app.tsx dirombak total
+- Kontrak: view 'soon' → ComingSoonView otomatis; mengisi konten = 1 perubahan status + 1 entry di VIEWS
