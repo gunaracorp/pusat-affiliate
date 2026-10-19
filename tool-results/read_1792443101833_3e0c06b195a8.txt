@@ -1,0 +1,913 @@
+     1→'use client'
+     2→
+     3→// ============ ADMIN MODE SAKTI — COMMAND CENTER WEB 6.0 ============
+     4→import { useCallback, useEffect, useState } from 'react'
+     5→import { motion } from 'framer-motion'
+     6→import {
+     7→  Activity,
+     8→  Banknote,
+     9→  Copy,
+    10→  Loader2,
+    11→  PackagePlus,
+    12→  Plus,
+    13→  RefreshCw,
+    14→  Sparkles,
+    15→  Trash2,
+    16→  TrendingDown,
+    17→  TrendingUp,
+    18→  UserPlus,
+    19→} from 'lucide-react'
+    20→import type { LucideIcon } from 'lucide-react'
+    21→import {
+    22→  Area,
+    23→  AreaChart,
+    24→  CartesianGrid,
+    25→  Cell,
+    26→  Legend,
+    27→  Pie,
+    28→  PieChart,
+    29→  ResponsiveContainer,
+    30→  Tooltip,
+    31→  XAxis,
+    32→  YAxis,
+    33→} from 'recharts'
+    34→import { formatDistanceToNow } from 'date-fns'
+    35→import { id as localeId } from 'date-fns/locale'
+    36→import { api, CATEGORY_LABELS, fmtNum, fmtUSD } from '@/lib/affiliate'
+    37→import type { AdminOverview, AffiliateProgram } from '@/lib/affiliate'
+    38→import {
+    39→  AnimatedCounter,
+    40→  EmptyState,
+    41→  GlowCard,
+    42→  LiveDot,
+    43→  SectionHeader,
+    44→  SkeletonGrid,
+    45→  TierBadge,
+    46→} from '@/components/pa/shared'
+    47→import {
+    48→  AlertDialog,
+    49→  AlertDialogAction,
+    50→  AlertDialogCancel,
+    51→  AlertDialogContent,
+    52→  AlertDialogDescription,
+    53→  AlertDialogFooter,
+    54→  AlertDialogHeader,
+    55→  AlertDialogTitle,
+    56→  AlertDialogTrigger,
+    57→} from '@/components/ui/alert-dialog'
+    58→import { Badge } from '@/components/ui/badge'
+    59→import { Button } from '@/components/ui/button'
+    60→import {
+    61→  Dialog,
+    62→  DialogContent,
+    63→  DialogDescription,
+    64→  DialogFooter,
+    65→  DialogHeader,
+    66→  DialogTitle,
+    67→} from '@/components/ui/dialog'
+    68→import { Input } from '@/components/ui/input'
+    69→import { Label } from '@/components/ui/label'
+    70→import { Progress } from '@/components/ui/progress'
+    71→import {
+    72→  Select,
+    73→  SelectContent,
+    74→  SelectItem,
+    75→  SelectTrigger,
+    76→  SelectValue,
+    77→} from '@/components/ui/select'
+    78→import {
+    79→  Table,
+    80→  TableBody,
+    81→  TableCell,
+    82→  TableHead,
+    83→  TableHeader,
+    84→  TableRow,
+    85→} from '@/components/ui/table'
+    86→import { Textarea } from '@/components/ui/textarea'
+    87→import { toast } from '@/hooks/use-toast'
+    88→import { cn } from '@/lib/utils'
+    89→
+    90→// ---------- konstanta visual ----------
+    91→const PIE_COLORS = ['#34d399', '#fbbf24', '#a78bfa', '#fb7185', '#2dd4bf', '#f97316', '#eab308']
+    92→
+    93→const TIER_OPTIONS = ['S+', 'S', 'A', 'B']
+    94→const DIFFICULTY_OPTIONS = ['Pemula', 'Menengah', 'Mahir']
+    95→const COMMISSION_TYPE_OPTIONS = [
+    96→  { value: 'percent', label: 'Percent (%)' },
+    97→  { value: 'recurring', label: 'Recurring' },
+    98→  { value: 'fixed', label: 'Fixed' },
+    99→]
+   100→
+   101→const ACTIVITY_META: Record<string, { icon: LucideIcon; cls: string }> = {
+   102→  payout: { icon: Banknote, cls: 'border-amber-400/30 bg-amber-400/10 text-amber-300' },
+   103→  user_join: { icon: UserPlus, cls: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' },
+   104→  program_added: { icon: PackagePlus, cls: 'border-violet-400/30 bg-violet-400/10 text-violet-300' },
+   105→  ai_generated: { icon: Sparkles, cls: 'border-amber-400/30 bg-amber-400/10 text-amber-300' },
+   106→}
+   107→const ACTIVITY_FALLBACK: { icon: LucideIcon; cls: string } = {
+   108→  icon: Activity,
+   109→  cls: 'border-white/10 bg-white/5 text-zinc-300',
+   110→}
+   111→
+   112→const SYS_ROWS: { key: 'cpu' | 'memory' | 'network' | 'aiLoad'; label: string; bar: string }[] = [
+   113→  { key: 'cpu', label: 'CPU LOAD', bar: '[&>div]:bg-emerald-400' },
+   114→  { key: 'memory', label: 'MEMORY', bar: '[&>div]:bg-amber-400' },
+   115→  { key: 'network', label: 'NETWORK I/O', bar: '[&>div]:bg-violet-400' },
+   116→  { key: 'aiLoad', label: 'AI LOAD', bar: '[&>div]:bg-rose-400' },
+   117→]
+   118→
+   119→// ---------- state form tambah program ----------
+   120→interface ProgramForm {
+   121→  name: string
+   122→  brand: string
+   123→  icon: string
+   124→  joinUrl: string
+   125→  description: string
+   126→  strategy: string
+   127→  commissionMin: string
+   128→  commissionMax: string
+   129→  tier: string
+   130→  category: string
+   131→  difficulty: string
+   132→  commissionType: string
+   133→}
+   134→
+   135→const EMPTY_PROGRAM_FORM: ProgramForm = {
+   136→  name: '',
+   137→  brand: '',
+   138→  icon: '',
+   139→  joinUrl: '',
+   140→  description: '',
+   141→  strategy: '',
+   142→  commissionMin: '',
+   143→  commissionMax: '',
+   144→  tier: 'S',
+   145→  category: 'ecommerce',
+   146→  difficulty: 'Menengah',
+   147→  commissionType: 'percent',
+   148→}
+   149→
+   150→const TOOLTIP_STYLE: React.CSSProperties = {
+   151→  background: 'rgba(8, 12, 10, 0.94)',
+   152→  border: '1px solid rgba(255,255,255,0.12)',
+   153→  borderRadius: 12,
+   154→  fontSize: 12,
+   155→}
+   156→
+   157→export default function AdminView() {
+   158→  const [data, setData] = useState<AdminOverview | null>(null)
+   159→  const [loading, setLoading] = useState(true)
+   160→  const [programsAdmin, setProgramsAdmin] = useState<AffiliateProgram[]>([])
+   161→  const [openAdd, setOpenAdd] = useState(false)
+   162→  const [adding, setAdding] = useState(false)
+   163→  const [form, setForm] = useState<ProgramForm>(EMPTY_PROGRAM_FORM)
+   164→  const [topic, setTopic] = useState('')
+   165→  const [aiLoading, setAiLoading] = useState(false)
+   166→  const [insight, setInsight] = useState('')
+   167→
+   168→  // ---------- data fetching ----------
+   169→  const fetchOverview = useCallback(async (silent = false) => {
+   170→    if (!silent) setLoading(true)
+   171→    try {
+   172→      const res = await api.adminOverview()
+   173→      setData(res)
+   174→    } catch (err) {
+   175→      toast({
+   176→        title: 'Gagal memuat overview',
+   177→        description: err instanceof Error ? err.message : 'Coba lagi nanti.',
+   178→        variant: 'destructive',
+   179→      })
+   180→    } finally {
+   181→      setLoading(false)
+   182→    }
+   183→  }, [])
+   184→
+   185→  const refreshPrograms = useCallback(async () => {
+   186→    try {
+   187→      const res = await api.getPrograms()
+   188→      setProgramsAdmin(res.programs)
+   189→    } catch {
+   190→      // biarkan tabel tetap memakai data lama
+   191→    }
+   192→  }, [])
+   193→
+   194→  useEffect(() => {
+   195→    void fetchOverview()
+   196→    void refreshPrograms()
+   197→    const timer = setInterval(() => void fetchOverview(true), 30000)
+   198→    return () => clearInterval(timer)
+   199→  }, [fetchOverview, refreshPrograms])
+   200→
+   201→  // ---------- aksi kurasi program ----------
+   202→  async function handleAddProgram() {
+   203→    if (!form.name.trim() || !form.brand.trim()) {
+   204→      toast({
+   205→        title: 'Validasi gagal',
+   206→        description: 'Nama program dan brand wajib diisi.',
+   207→        variant: 'destructive',
+   208→      })
+   209→      return
+   210→    }
+   211→    setAdding(true)
+   212→    try {
+   213→      await api.adminAddProgram({
+   214→        name: form.name.trim(),
+   215→        brand: form.brand.trim(),
+   216→        icon: form.icon.trim() || '🚀',
+   217→        joinUrl: form.joinUrl.trim(),
+   218→        description: form.description.trim(),
+   219→        strategy: form.strategy.trim(),
+   220→        commissionMin: Number(form.commissionMin) || 0,
+   221→        commissionMax: Number(form.commissionMax) || 0,
+   222→        tier: form.tier as AffiliateProgram['tier'],
+   223→        category: form.category,
+   224→        difficulty: form.difficulty,
+   225→        commissionType: form.commissionType as AffiliateProgram['commissionType'],
+   226→      })
+   227→      toast({ title: '✅ Program masuk arsenal!', description: `${form.name.trim()} kini terdaftar di marketplace.` })
+   228→      setOpenAdd(false)
+   229→      setForm(EMPTY_PROGRAM_FORM)
+   230→      await refreshPrograms()
+   231→    } catch (err) {
+   232→      toast({
+   233→        title: 'Gagal menambah program',
+   234→        description: err instanceof Error ? err.message : 'Coba lagi nanti.',
+   235→        variant: 'destructive',
+   236→      })
+   237→    } finally {
+   238→      setAdding(false)
+   239→    }
+   240→  }
+   241→
+   242→  async function handleDeleteProgram(id: string, name: string) {
+   243→    try {
+   244→      await api.adminDeleteProgram(id)
+   245→      toast({ title: '🗑️ Program dihapus', description: `"${name}" keluar dari arsenal kurasi.` })
+   246→      await refreshPrograms()
+   247→    } catch (err) {
+   248→      toast({
+   249→        title: 'Gagal menghapus program',
+   250→        description: err instanceof Error ? err.message : 'Coba lagi nanti.',
+   251→        variant: 'destructive',
+   252→      })
+   253→    }
+   254→  }
+   255→
+   256→  // ---------- AI insight ----------
+   257→  async function handleGenerate() {
+   258→    if (!topic.trim()) {
+   259→      toast({ title: 'Topik kosong', description: 'Tulis topik strategi dulu, komandan.', variant: 'destructive' })
+   260→      return
+   261→    }
+   262→    setAiLoading(true)
+   263→    try {
+   264→      const res = await api.aiGenerate({ mode: 'strategy', topic: topic.trim() })
+   265→      setInsight(res.result)
+   266→    } catch (err) {
+   267→      toast({
+   268→        title: 'Dewan sedang sibuk',
+   269→        description: err instanceof Error ? err.message : 'Coba lagi nanti.',
+   270→        variant: 'destructive',
+   271→      })
+   272→    } finally {
+   273→      setAiLoading(false)
+   274→    }
+   275→  }
+   276→
+   277→  async function handleCopyInsight() {
+   278→    try {
+   279→      await navigator.clipboard.writeText(insight)
+   280→      toast({ title: '📋 Insight tersalin!', description: 'Strategi siap ditempel ke catatan kampanye.' })
+   281→    } catch {
+   282→      toast({ title: 'Gagal menyalin', description: 'Clipboard tidak tersedia.', variant: 'destructive' })
+   283→    }
+   284→  }
+   285→
+   286→  // ---------- header ----------
+   287→  const header = (
+   288→    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+   289→      <SectionHeader
+   290→        kicker="RESTRICTED ACCESS // LEVEL OMEGA"
+   291→        title="Admin Mode Sakti 🧿"
+   292→        subtitle="Command center web 6.0 — pantau KPI global, kurasi program, dan minta strategi langsung dari dewan 46 pakar AI."
+   293→        className="mb-0"
+   294→      />
+   295→      <div className="flex flex-wrap items-center gap-3">
+   296→        <LiveDot label="SYSTEM ONLINE" />
+   297→        <Button variant="outline" size="sm" onClick={() => void fetchOverview()} disabled={loading}>
+   298→          <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+   299→          Refresh
+   300→        </Button>
+   301→        <Badge variant="outline" className="border-amber-400/30 font-mono text-[10px] tracking-widest text-amber-300">
+   302→          UPTIME {data?.systemStatus.uptime ?? '—'}
+   303→        </Badge>
+   304→      </div>
+   305→    </div>
+   306→  )
+   307→
+   308→  // ---------- loading / error state ----------
+   309→  if (!data) {
+   310→    return (
+   311→      <section className="space-y-8">
+   312→        {header}
+   313→        {loading ? (
+   314→          <SkeletonGrid count={6} />
+   315→        ) : (
+   316→          <EmptyState
+   317→            icon="📡"
+   318→            title="Command center offline"
+   319→            subtitle="Gagal memuat data overview. Klik tombol Refresh untuk mencoba lagi."
+   320→          />
+   321→        )}
+   322→      </section>
+   323→    )
+   324→  }
+   325→
+   326→  const s = data.systemStatus
+   327→
+   328→  return (
+   329→    <section className="space-y-8">
+   330→      {header}
+   331→
+   332→      <div className="scanline relative space-y-6 overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-6">
+   333→        {/* ===== 1. KPI GRID ===== */}
+   334→        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+   335→          {data.kpi.map((k, i) => (
+   336→            <motion.div
+   337→              key={k.key}
+   338→              initial={{ opacity: 0, y: 14 }}
+   339→              animate={{ opacity: 1, y: 0 }}
+   340→              transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+   341→              className="h-full"
+   342→            >
+   343→              <GlowCard variant="plain" className="flex h-full flex-col gap-2">
+   344→                <div className="flex items-center justify-between gap-2">
+   345→                  <p className="truncate text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+   346→                    {k.label}
+   347→                  </p>
+   348→                  <span className="shrink-0 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[9px] font-mono uppercase text-muted-foreground">
+   349→                    {k.unit}
+   350→                  </span>
+   351→                </div>
+   352→                <p className="text-xl font-bold text-foreground md:text-2xl">
+   353→                  <AnimatedCounter
+   354→                    value={k.value}
+   355→                    format={k.unit === 'USD' ? (n) => fmtUSD(n, true) : (n) => fmtNum(n, true)}
+   356→                  />
+   357→                </p>
+   358→                <p
+   359→                  className={cn(
+   360→                    'mt-auto flex items-center gap-1 text-xs font-semibold',
+   361→                    k.delta >= 0 ? 'text-emerald-300' : 'text-rose-300'
+   362→                  )}
+   363→                >
+   364→                  {k.delta >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+   365→                  {k.delta}%
+   366→                </p>
+   367→              </GlowCard>
+   368→            </motion.div>
+   369→          ))}
+   370→        </div>
+   371→
+   372→        {/* ===== 2. CHART ROW ===== */}
+   373→        <div className="grid gap-4 xl:grid-cols-3">
+   374→          <GlowCard variant="plain" className="space-y-3 xl:col-span-2">
+   375→            <div>
+   376→              <h3 className="text-sm font-semibold text-foreground">Aliran Komisi 30 Hari Terakhir</h3>
+   377→              <p className="text-xs text-muted-foreground">Komisi harian (kiri) berdampingan dengan volume klik (kanan).</p>
+   378→            </div>
+   379→            <ResponsiveContainer width="100%" height={280}>
+   380→              <AreaChart data={data.revenueSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+   381→                <defs>
+   382→                  <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+   383→                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.45} />
+   384→                    <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+   385→                  </linearGradient>
+   386→                  <linearGradient id="emeraldGrad" x1="0" y1="0" x2="0" y2="1">
+   387→                    <stop offset="0%" stopColor="#34d399" stopOpacity={0.22} />
+   388→                    <stop offset="100%" stopColor="#34d399" stopOpacity={0} />
+   389→                  </linearGradient>
+   390→                </defs>
+   391→                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+   392→                <XAxis
+   393→                  dataKey="date"
+   394→                  tickFormatter={(v: string) => String(v).slice(5)}
+   395→                  tickLine={false}
+   396→                  axisLine={false}
+   397→                />
+   398→                <YAxis
+   399→                  yAxisId="left"
+   400→                  tickFormatter={(v: number) => fmtUSD(v, true)}
+   401→                  tickLine={false}
+   402→                  axisLine={false}
+   403→                  width={58}
+   404→                />
+   405→                <YAxis
+   406→                  yAxisId="right"
+   407→                  orientation="right"
+   408→                  tickFormatter={(v: number) => fmtNum(v, true)}
+   409→                  tickLine={false}
+   410→                  axisLine={false}
+   411→                  width={40}
+   412→                />
+   413→                <Tooltip
+   414→                  contentStyle={TOOLTIP_STYLE}
+   415→                  formatter={(value, name) => (name === 'Klik' ? fmtNum(Number(value)) : fmtUSD(Number(value)))}
+   416→                />
+   417→                <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+   418→                <Area
+   419→                  yAxisId="left"
+   420→                  type="monotone"
+   421→                  dataKey="revenue"
+   422→                  name="Komisi"
+   423→                  stroke="#fbbf24"
+   424→                  strokeWidth={2}
+   425→                  fill="url(#goldGrad)"
+   426→                />
+   427→                <Area
+   428→                  yAxisId="right"
+   429→                  type="monotone"
+   430→                  dataKey="clicks"
+   431→                  name="Klik"
+   432→                  stroke="#34d399"
+   433→                  strokeWidth={2}
+   434→                  fill="url(#emeraldGrad)"
+   435→                />
+   436→              </AreaChart>
+   437→            </ResponsiveContainer>
+   438→          </GlowCard>
+   439→
+   440→          <GlowCard variant="plain" className="space-y-3">
+   441→            <div>
+   442→              <h3 className="text-sm font-semibold text-foreground">Distribusi Kategori Program</h3>
+   443→              <p className="text-xs text-muted-foreground">Sebaran arsenal berdasarkan kategori pasar.</p>
+   444→            </div>
+   445→            <ResponsiveContainer width="100%" height={280}>
+   446→              <PieChart>
+   447→                <Tooltip
+   448→                  contentStyle={TOOLTIP_STYLE}
+   449→                  formatter={(value, name, item) =>
+   450→                    `${name}: ${Number(value)} program (avg ${Number(item?.payload?.avgCommission ?? 0).toFixed(0)}%)`
+   451→                  }
+   452→                />
+   453→                <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+   454→                <Pie
+   455→                  data={data.categoryMix}
+   456→                  dataKey="count"
+   457→                  nameKey="category"
+   458→                  cx="50%"
+   459→                  cy="50%"
+   460→                  innerRadius={50}
+   461→                  outerRadius={80}
+   462→                  paddingAngle={3}
+   463→                  stroke="rgba(0,0,0,0.3)"
+   464→                >
+   465→                  {data.categoryMix.map((entry, i) => (
+   466→                    <Cell key={entry.category} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+   467→                  ))}
+   468→                </Pie>
+   469→              </PieChart>
+   470→            </ResponsiveContainer>
+   471→          </GlowCard>
+   472→        </div>
+   473→
+   474→        {/* ===== 3. ROW TABEL ===== */}
+   475→        <div className="grid gap-4 xl:grid-cols-2">
+   476→          <GlowCard variant="plain" className="space-y-3">
+   477→            <h3 className="text-sm font-semibold text-foreground">🏆 Program Paling Menguntungkan</h3>
+   478→            {data.topPrograms.length === 0 ? (
+   479→              <EmptyState icon="📦" title="Belum ada data program" subtitle="Tabel terisi setelah traffic mengalir." />
+   480→            ) : (
+   481→              <div className="max-h-72 overflow-y-auto rounded-lg border border-white/5">
+   482→                <Table>
+   483→                  <TableHeader>
+   484→                    <TableRow>
+   485→                      <TableHead>Program</TableHead>
+   486→                      <TableHead className="text-right">Klik</TableHead>
+   487→                      <TableHead className="text-right">Komisi</TableHead>
+   488→                      <TableHead className="text-right">CR</TableHead>
+   489→                    </TableRow>
+   490→                  </TableHeader>
+   491→                  <TableBody>
+   492→                    {data.topPrograms.map((p) => (
+   493→                      <TableRow key={p.slug}>
+   494→                        <TableCell>
+   495→                          <div className="flex items-center gap-2">
+   496→                            <span className="text-base">{p.icon}</span>
+   497→                            <span className="text-sm font-medium">{p.name}</span>
+   498→                          </div>
+   499→                        </TableCell>
+   500→                        <TableCell className="text-right tabular">{fmtNum(p.clicks)}</TableCell>
+   501→                        <TableCell className="text-right font-semibold text-emerald-300 tabular">
+   502→                          {fmtUSD(p.earnings)}
+   503→                        </TableCell>
+   504→                        <TableCell className="text-right tabular">{p.conversionRate.toFixed(2)}%</TableCell>
+   505→                      </TableRow>
+   506→                    ))}
+   507→                  </TableBody>
+   508→                </Table>
+   509→              </div>
+   510→            )}
+   511→          </GlowCard>
+   512→
+   513→          <GlowCard variant="plain" className="space-y-3">
+   514→            <h3 className="text-sm font-semibold text-foreground">🔗 Link Teratas</h3>
+   515→            {data.topLinks.length === 0 ? (
+   516→              <EmptyState icon="🛰️" title="Belum ada link terlacak" subtitle="Buat link di panel Tracker untuk mulai mengukur." />
+   517→            ) : (
+   518→              <div className="max-h-72 overflow-y-auto rounded-lg border border-white/5">
+   519→                <Table>
+   520→                  <TableHeader>
+   521→                    <TableRow>
+   522→                      <TableHead>Nama</TableHead>
+   523→                      <TableHead>Channel</TableHead>
+   524→                      <TableHead className="text-right">Klik</TableHead>
+   525→                      <TableHead className="text-right">Komisi</TableHead>
+   526→                    </TableRow>
+   527→                  </TableHeader>
+   528→                  <TableBody>
+   529→                    {data.topLinks.map((l) => (
+   530→                      <TableRow key={l.id}>
+   531→                        <TableCell className="max-w-44 truncate text-sm font-medium">{l.name}</TableCell>
+   532→                        <TableCell>
+   533→                          <Badge variant="secondary" className="text-[10px] uppercase">
+   534→                            {l.channel}
+   535→                          </Badge>
+   536→                        </TableCell>
+   537→                        <TableCell className="text-right tabular">{fmtNum(l.clicks)}</TableCell>
+   538→                        <TableCell className="text-right font-semibold text-emerald-300 tabular">
+   539→                          {fmtUSD(l.earnings)}
+   540→                        </TableCell>
+   541→                      </TableRow>
+   542→                    ))}
+   543→                  </TableBody>
+   544→                </Table>
+   545→              </div>
+   546→            )}
+   547→          </GlowCard>
+   548→        </div>
+   549→
+   550→        {/* ===== 4. BOTTOM ROW ===== */}
+   551→        <div className="grid gap-4 xl:grid-cols-3">
+   552→          <GlowCard variant="violet" className="space-y-4 xl:col-span-1">
+   553→            <h3 className="text-sm font-semibold text-foreground">🖥️ Status Sistem Web 6.0</h3>
+   554→            <div className="space-y-3">
+   555→              {SYS_ROWS.map((row) => (
+   556→                <div key={row.key} className="space-y-1.5">
+   557→                  <div className="flex items-center justify-between font-mono text-[11px] tracking-wider">
+   558→                    <span className="text-muted-foreground">{row.label}</span>
+   559→                    <span className="text-foreground tabular">{Math.round(s[row.key])}%</span>
+   560→                  </div>
+   561→                  <Progress value={s[row.key]} className={cn('h-1.5', row.bar)} />
+   562→                </div>
+   563→              ))}
+   564→            </div>
+   565→            <p className="border-t border-white/5 pt-3 font-mono text-[10px] tracking-wider text-muted-foreground">
+   566→              NODES <span className="font-bold text-emerald-300">{s.nodes}</span>/46 ACTIVE • UPTIME{' '}
+   567→              <span className="font-bold text-amber-300">{s.uptime}</span>
+   568→            </p>
+   569→          </GlowCard>
+   570→
+   571→          <GlowCard variant="plain" className="space-y-3 xl:col-span-2">
+   572→            <div className="flex items-center justify-between gap-3">
+   573→              <h3 className="text-sm font-semibold text-foreground">📡 Aktivitas Real-time</h3>
+   574→              <LiveDot label="STREAMING" />
+   575→            </div>
+   576→            {data.activities.length === 0 ? (
+   577→              <EmptyState icon="🌀" title="Belum ada aktivitas" subtitle="Log jaringan akan muncul di sini." />
+   578→            ) : (
+   579→              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+   580→                {data.activities.map((a) => {
+   581→                  const meta = ACTIVITY_META[a.type] ?? ACTIVITY_FALLBACK
+   582→                  const Icon = meta.icon
+   583→                  return (
+   584→                    <div
+   585→                      key={a.id}
+   586→                      className="flex items-start gap-3 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2.5"
+   587→                    >
+   588→                      <span
+   589→                        className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-md border', meta.cls)}
+   590→                      >
+   591→                        <Icon className="h-3.5 w-3.5" />
+   592→                      </span>
+   593→                      <div className="min-w-0 flex-1">
+   594→                        <p className="truncate text-sm text-foreground/90">{a.message}</p>
+   595→                        <p className="text-[11px] text-muted-foreground">
+   596→                          {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true, locale: localeId })}
+   597→                        </p>
+   598→                      </div>
+   599→                      {a.amount != null && (
+   600→                        <span className="shrink-0 text-sm font-semibold text-emerald-300 tabular">
+   601→                          {fmtUSD(a.amount)}
+   602→                        </span>
+   603→                      )}
+   604→                    </div>
+   605→                  )
+   606→                })}
+   607→              </div>
+   608→            )}
+   609→          </GlowCard>
+   610→        </div>
+   611→
+   612→        {/* ===== 5. PANEL MANAJEMEN PROGRAM ===== */}
+   613→        <GlowCard variant="gold" className="space-y-4">
+   614→          <div className="flex flex-wrap items-center justify-between gap-3">
+   615→            <div>
+   616→              <h3 className="text-sm font-semibold text-foreground sm:text-base">⚙️ Manajemen Kurasi Program</h3>
+   617→              <p className="text-xs text-muted-foreground">
+   618→                {programsAdmin.length} program dalam arsenal — tambahkan yang baru atau buang yang lemah.
+   619→              </p>
+   620→            </div>
+   621→            <Button className="btn-neon" onClick={() => setOpenAdd(true)}>
+   622→              <Plus className="h-4 w-4" />
+   623→              Tambah Program
+   624→            </Button>
+   625→          </div>
+   626→
+   627→          {programsAdmin.length === 0 ? (
+   628→            <EmptyState icon="🗃️" title="Arsenal kosong" subtitle="Tambahkan program pertama lewat tombol di atas." />
+   629→          ) : (
+   630→            <div className="max-h-96 overflow-y-auto rounded-lg border border-white/5">
+   631→              <Table>
+   632→                <TableHeader>
+   633→                  <TableRow>
+   634→                    <TableHead className="w-12">Icon</TableHead>
+   635→                    <TableHead>Nama</TableHead>
+   636→                    <TableHead>Tier</TableHead>
+   637→                    <TableHead className="text-right">Komisi</TableHead>
+   638→                    <TableHead>Kategori</TableHead>
+   639→                    <TableHead className="text-right">Gravity</TableHead>
+   640→                    <TableHead className="w-16 text-right">Aksi</TableHead>
+   641→                  </TableRow>
+   642→                </TableHeader>
+   643→                <TableBody>
+   644→                  {programsAdmin.map((p) => (
+   645→                    <TableRow key={p.id}>
+   646→                      <TableCell className="text-lg">{p.icon}</TableCell>
+   647→                      <TableCell>
+   648→                        <p className="text-sm font-medium">{p.name}</p>
+   649→                        <p className="text-xs text-muted-foreground">{p.brand}</p>
+   650→                      </TableCell>
+   651→                      <TableCell>
+   652→                        <TierBadge tier={p.tier} />
+   653→                      </TableCell>
+   654→                      <TableCell className="text-right tabular">
+   655→                        {p.commissionMin}–{p.commissionMax}%
+   656→                      </TableCell>
+   657→                      <TableCell className="text-sm text-muted-foreground">
+   658→                        {CATEGORY_LABELS[p.category] ?? p.category}
+   659→                      </TableCell>
+   660→                      <TableCell className="text-right tabular">{fmtNum(p.gravity)}</TableCell>
+   661→                      <TableCell className="text-right">
+   662→                        <AlertDialog>
+   663→                          <AlertDialogTrigger asChild>
+   664→                            <Button
+   665→                              variant="ghost"
+   666→                              size="icon"
+   667→                              className="h-8 w-8 text-rose-300 hover:bg-rose-400/10 hover:text-rose-200"
+   668→                              aria-label={`Hapus ${p.name}`}
+   669→                            >
+   670→                              <Trash2 className="h-3.5 w-3.5" />
+   671→                            </Button>
+   672→                          </AlertDialogTrigger>
+   673→                          <AlertDialogContent>
+   674→                            <AlertDialogHeader>
+   675→                              <AlertDialogTitle>Hapus program ini?</AlertDialogTitle>
+   676→                              <AlertDialogDescription>
+   677→                                &quot;{p.name}&quot; ({p.brand}) akan dihapus permanen dari arsenal kurasi. Tindakan ini
+   678→                                tidak bisa dibatalkan.
+   679→                              </AlertDialogDescription>
+   680→                            </AlertDialogHeader>
+   681→                            <AlertDialogFooter>
+   682→                              <AlertDialogCancel>Batal</AlertDialogCancel>
+   683→                              <AlertDialogAction
+   684→                                className="bg-rose-500 text-white hover:bg-rose-600"
+   685→                                onClick={() => void handleDeleteProgram(p.id, p.name)}
+   686→                              >
+   687→                                Ya, Hapus
+   688→                              </AlertDialogAction>
+   689→                            </AlertDialogFooter>
+   690→                          </AlertDialogContent>
+   691→                        </AlertDialog>
+   692→                      </TableCell>
+   693→                    </TableRow>
+   694→                  ))}
+   695→                </TableBody>
+   696→              </Table>
+   697→            </div>
+   698→          )}
+   699→        </GlowCard>
+   700→
+   701→        {/* ===== 6. AI INSIGHT BAR ===== */}
+   702→        <GlowCard variant="violet" className="space-y-4">
+   703→          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+   704→            <div>
+   705→              <h3 className="text-sm font-semibold text-foreground sm:text-base">
+   706→                🧠 AI Strategic Insight — Dewan 46 Pakar
+   707→              </h3>
+   708→              <p className="text-xs text-muted-foreground">Masukkan topik, dewan akan meracik strategi kampanye untukmu.</p>
+   709→            </div>
+   710→            <div className="flex w-full gap-2 lg:max-w-lg">
+   711→              <Input
+   712→                value={topic}
+   713→                onChange={(e) => setTopic(e.target.value)}
+   714→                onKeyDown={(e) => {
+   715→                  if (e.key === 'Enter') void handleGenerate()
+   716→                }}
+   717→                placeholder="Contoh: strategi konten TikTok untuk program SaaS"
+   718→              />
+   719→              <Button className="btn-neon shrink-0" onClick={() => void handleGenerate()} disabled={aiLoading}>
+   720→                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+   721→                {aiLoading ? 'Meracik…' : 'Generate Strategi'}
+   722→              </Button>
+   723→            </div>
+   724→          </div>
+   725→
+   726→          {insight && (
+   727→            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+   728→              <div className="flex items-center justify-between">
+   729→                <p className="text-[11px] font-mono uppercase tracking-widest text-violet-300">Hasil Dewan</p>
+   730→                <Button
+   731→                  variant="ghost"
+   732→                  size="sm"
+   733→                  className="h-7 text-xs text-muted-foreground hover:text-violet-300"
+   734→                  onClick={() => void handleCopyInsight()}
+   735→                >
+   736→                  <Copy className="h-3.5 w-3.5" />
+   737→                  Salin Hasil
+   738→                </Button>
+   739→              </div>
+   740→              <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg border border-violet-400/20 bg-violet-400/[0.06] p-4 text-sm leading-relaxed">
+   741→                {insight}
+   742→              </div>
+   743→            </motion.div>
+   744→          )}
+   745→        </GlowCard>
+   746→      </div>
+   747→
+   748→      {/* ===== DIALOG TAMBAH PROGRAM ===== */}
+   749→      <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+   750→        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+   751→          <DialogHeader>
+   752→            <DialogTitle>Tambah Program Baru</DialogTitle>
+   753→            <DialogDescription>
+   754→              Daftarkan program afiliasi baru ke arsenal. Field bertanda * wajib diisi.
+   755→            </DialogDescription>
+   756→          </DialogHeader>
+   757→
+   758→          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+   759→            <div className="space-y-1.5">
+   760→              <Label htmlFor="prog-name">Nama Program *</Label>
+   761→              <Input
+   762→                id="prog-name"
+   763→                value={form.name}
+   764→                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+   765→                placeholder="Contoh: Shopee Affiliate"
+   766→              />
+   767→            </div>
+   768→            <div className="space-y-1.5">
+   769→              <Label htmlFor="prog-brand">Brand *</Label>
+   770→              <Input
+   771→                id="prog-brand"
+   772→                value={form.brand}
+   773→                onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
+   774→                placeholder="Contoh: Shopee"
+   775→              />
+   776→            </div>
+   777→            <div className="space-y-1.5">
+   778→              <Label htmlFor="prog-icon">Icon (emoji)</Label>
+   779→              <Input
+   780→                id="prog-icon"
+   781→                value={form.icon}
+   782→                onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
+   783→                placeholder="🛒"
+   784→              />
+   785→            </div>
+   786→            <div className="space-y-1.5">
+   787→              <Label htmlFor="prog-url">Join URL</Label>
+   788→              <Input
+   789→                id="prog-url"
+   790→                value={form.joinUrl}
+   791→                onChange={(e) => setForm((f) => ({ ...f, joinUrl: e.target.value }))}
+   792→                placeholder="https://affiliate.example.com/signup"
+   793→              />
+   794→            </div>
+   795→            <div className="space-y-1.5 md:col-span-2">
+   796→              <Label htmlFor="prog-desc">Deskripsi</Label>
+   797→              <Textarea
+   798→                id="prog-desc"
+   799→                rows={2}
+   800→                value={form.description}
+   801→                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+   802→                placeholder="Ringkasan singkat program untuk marketplace…"
+   803→              />
+   804→            </div>
+   805→            <div className="space-y-1.5 md:col-span-2">
+   806→              <Label htmlFor="prog-strategy">Strategi</Label>
+   807→              <Textarea
+   808→                id="prog-strategy"
+   809→                rows={2}
+   810→                value={form.strategy}
+   811→                onChange={(e) => setForm((f) => ({ ...f, strategy: e.target.value }))}
+   812→                placeholder="Taktik promosi yang terbukti untuk program ini…"
+   813→              />
+   814→            </div>
+   815→            <div className="space-y-1.5">
+   816→              <Label htmlFor="prog-cmin">Komisi Min (%)</Label>
+   817→              <Input
+   818→                id="prog-cmin"
+   819→                type="number"
+   820→                min={0}
+   821→                value={form.commissionMin}
+   822→                onChange={(e) => setForm((f) => ({ ...f, commissionMin: e.target.value }))}
+   823→                placeholder="1"
+   824→              />
+   825→            </div>
+   826→            <div className="space-y-1.5">
+   827→              <Label htmlFor="prog-cmax">Komisi Max (%)</Label>
+   828→              <Input
+   829→                id="prog-cmax"
+   830→                type="number"
+   831→                min={0}
+   832→                value={form.commissionMax}
+   833→                onChange={(e) => setForm((f) => ({ ...f, commissionMax: e.target.value }))}
+   834→                placeholder="10"
+   835→              />
+   836→            </div>
+   837→            <div className="space-y-1.5">
+   838→              <Label>Tier</Label>
+   839→              <Select value={form.tier} onValueChange={(v) => setForm((f) => ({ ...f, tier: v }))}>
+   840→                <SelectTrigger className="w-full">
+   841→                  <SelectValue placeholder="Pilih tier" />
+   842→                </SelectTrigger>
+   843→                <SelectContent>
+   844→                  {TIER_OPTIONS.map((t) => (
+   845→                    <SelectItem key={t} value={t}>
+   846→                      {t}
+   847→                    </SelectItem>
+   848→                  ))}
+   849→                </SelectContent>
+   850→              </Select>
+   851→            </div>
+   852→            <div className="space-y-1.5">
+   853→              <Label>Kategori</Label>
+   854→              <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
+   855→                <SelectTrigger className="w-full">
+   856→                  <SelectValue placeholder="Pilih kategori" />
+   857→                </SelectTrigger>
+   858→                <SelectContent>
+   859→                  {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+   860→                    <SelectItem key={value} value={value}>
+   861→                      {label}
+   862→                    </SelectItem>
+   863→                  ))}
+   864→                </SelectContent>
+   865→              </Select>
+   866→            </div>
+   867→            <div className="space-y-1.5">
+   868→              <Label>Kesulitan</Label>
+   869→              <Select value={form.difficulty} onValueChange={(v) => setForm((f) => ({ ...f, difficulty: v }))}>
+   870→                <SelectTrigger className="w-full">
+   871→                  <SelectValue placeholder="Pilih kesulitan" />
+   872→                </SelectTrigger>
+   873→                <SelectContent>
+   874→                  {DIFFICULTY_OPTIONS.map((d) => (
+   875→                    <SelectItem key={d} value={d}>
+   876→                      {d}
+   877→                    </SelectItem>
+   878→                  ))}
+   879→                </SelectContent>
+   880→              </Select>
+   881→            </div>
+   882→            <div className="space-y-1.5">
+   883→              <Label>Tipe Komisi</Label>
+   884→              <Select value={form.commissionType} onValueChange={(v) => setForm((f) => ({ ...f, commissionType: v }))}>
+   885→                <SelectTrigger className="w-full">
+   886→                  <SelectValue placeholder="Pilih tipe komisi" />
+   887→                </SelectTrigger>
+   888→                <SelectContent>
+   889→                  {COMMISSION_TYPE_OPTIONS.map((c) => (
+   890→                    <SelectItem key={c.value} value={c.value}>
+   891→                      {c.label}
+   892→                    </SelectItem>
+   893→                  ))}
+   894→                </SelectContent>
+   895→              </Select>
+   896→            </div>
+   897→          </div>
+   898→
+   899→          <DialogFooter className="gap-2">
+   900→            <Button variant="outline" onClick={() => setOpenAdd(false)}>
+   901→              Batal
+   902→            </Button>
+   903→            <Button className="btn-neon" onClick={() => void handleAddProgram()} disabled={adding}>
+   904→              {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+   905→              {adding ? 'Menyimpan…' : 'Tambah ke Arsenal'}
+   906→            </Button>
+   907→          </DialogFooter>
+   908→        </DialogContent>
+   909→      </Dialog>
+   910→    </section>
+   911→  )
+   912→}
+   913→

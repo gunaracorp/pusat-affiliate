@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ PROGRAM AFFILIATE ============
+model AffiliateProgram {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  name             String
+  brand            String
+  category         String // ecommerce, travel, finance, saas, digital, fashion, education
+  icon             String // emoji
+  commissionMin    Float // percent
+  commissionMax    Float // percent
+  commissionType   String // "percent" | "fixed" | "recurring"
+  commissionNote   String
+  cookieDuration   Int // days
+  paymentThreshold Float // USD
+  network          String // TikTok Shop, Shopee, Involve Asia, dll
+  tier             String // S+, S, A, B
+  difficulty       String // "Pemula" | "Menengah" | "Mahir"
+  avgOrderValue    Float // USD
+  conversionRate   Float // percent
+  gravity          Float // skor popularitas 0-100
+  featured         Boolean  @default(false)
+  trendingScore    Int
+  color            String // hex accent
+  description      String
+  strategy         String // strategi rahasia menang
+  joinUrl          String
+  createdAt        DateTime @default(now())
+}
+
+// ============ AKADEMI / COURSES ============
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  level       String // "Pemula" | "Menengah" | "Mahir" | "Legenda"
+  track       String // path name: TikTok Track, Shopee Track, dst
+  duration    Int // menit
+  lessons     Int
+  students    Int
+  rating      Float
+  xp          Int
+  icon        String // emoji
+  description String
+  modules     String // JSON string: [{title, minutes, summary, keyPoints: []}]
+  order       Int
+  createdAt   DateTime @default(now())
+}
+
+// ============ LEADERBOARD / TOP AFFILIATES ============
+model AffiliateUser {
+  id         String  @id @default(cuid())
+  name       String
+  tier       String // Diamond, Platinum, Gold, Silver
+  earnings   Float // USD total
+  clicks     Int
+  conversions Int
+  specialty  String
+  country    String
+  growth     Float // % growth bulan ini
+}
+
+// ============ LINK TRACKER ============
+model TrackedLink {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  programSlug String
+  channel     String // TikTok, Instagram, YouTube, WhatsApp, Blog
+  targetUrl   String
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  earnings    Float    @default(0)
+  createdAt   DateTime @default(now())
+  events      ClickEvent[]
+}
+
+model ClickEvent {
+  id        String   @id @default(cuid())
+  linkId    String
+  link      TrackedLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  converted Boolean  @default(false)
+  source    String // channel
+  device    String // mobile | desktop
+}
+
+// ============ STATISTIK PLATFORM ============
+model PlatformStat {
+  id    String @id @default(cuid())
+  key   String @unique
+  label String
+  value Float
+  unit  String // USD, user, program, click
+  delta Float // % pertumbuhan
+}
+
+// ============ ADMIN: AKTIVITAS SISTEM ============
+model ActivityLog {
+  id        String   @id @default(cuid())
+  type      String // user_join, payout, program_added, ai_generated
+  message   String
+  amount    Float?
+  createdAt DateTime @default(now())
+}
