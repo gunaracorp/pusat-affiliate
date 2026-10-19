@@ -23,6 +23,20 @@
 
 ---
 
+## 👤 Created & Maintained By
+
+| Role | Name / Entity | Link |
+|------|---------------|------|
+| 👑 **Creator & Architect** | **Gugun Gunara** | — |
+| 🛠️ Co-Creator | Muhammad Lutfi Azmi | [digiman.id](https://digiman.id) |
+| 🏷️ Team Brands | Prabudanling · Santri Angon | — |
+| 🏢 Support System | **PT Top Konsultan Internasional** | [topkonsultan.web.id](https://topkonsultan.web.id) |
+| 🏢 Support System | **PT Digital Bisnis Manajemen** | [digiman.id](https://digiman.id) |
+
+<sub>PUSATAFFILIATE is created by **Gugun Gunara**, co-created with **Muhammad Lutfi Azmi**, together with the **Prabudanling** & **Santri Angon** brands — supported by **PT Top Konsultan Internasional** (topkonsultan.web.id) and **PT Digital Bisnis Manajemen** (digiman.id).</sub>
+
+---
+
 ## 📖 About the Project
 
 **PUSATAFFILIATE** is an all-in-one *learning + execution* platform for affiliate marketers, built around the highest-commission programs on earth — **TikTok Shop, Shopee, Amazon, ClickBank, Lazada, Involve Asia, Binance, and more**.
@@ -378,6 +392,9 @@ Released under the [MIT License](LICENSE).
 <div align="center">
 
 **PUSATAFFILIATE** · Web 6.0 Protocol · Node Cluster 46/46
+*by **Gugun Gunara** — with **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+*Supported by **PT Top Konsultan Internasional** (topkonsultan.web.id) & **PT Digital Bisnis Manajemen** (digiman.id)*
+
 *Jakarta / Everywhere — 2045*
 
 ⭐ Star this repo if it helped you land your first commission!
@@ -389,6 +406,18 @@ Released under the [MIT License](LICENSE).
 <!-- ================= BAHASA INDONESIA ================= -->
 
 ## 🇮🇩 Tentang Proyek Ini
+
+### 👤 Dibuat & Dikelola Oleh
+
+| Peran | Nama / Entitas | Tautan |
+|-------|----------------|--------|
+| 👑 **Kreator & Arsitek** | **Gugun Gunara** | — |
+| 🛠️ Ko-Kreator | Muhammad Lutfi Azmi | [digiman.id](https://digiman.id) |
+| 🏷️ Brand Tim | Prabudanling · Santri Angon | — |
+| 🏢 Support System | **PT Top Konsultan Internasional** | [topkonsultan.web.id](https://topkonsultan.web.id) |
+| 🏢 Support System | **PT Digital Bisnis Manajemen** | [digiman.id](https://digiman.id) |
+
+<sub>PUSATAFFILIATE dibuat oleh **Gugun Gunara**, bersama ko-kreator **Muhammad Lutfi Azmi**, serta brand **Prabudanling** & **Santri Angon** — didukung oleh **PT Top Konsultan Internasional** (topkonsultan.web.id) dan **PT Digital Bisnis Manajemen** (digiman.id).</sub>
 
 **PUSATAFFILIATE** adalah platform *belajar + eksekusi* all-in-one untuk pekerja affiliate, dibangun mengelilingi program-program komisi tertinggi di dunia — **TikTok Shop, Shopee, Amazon, ClickBank, Lazada, Involve Asia, Binance, dan lainnya**.
 
@@ -558,6 +587,9 @@ Platform ini untuk **edukasi & simulasi**. Statistik komisi, angka EPC, leaderbo
 <div align="center">
 
 **PUSATAFFILIATE** · Web 6.0 Protocol · Node Cluster 46/46
+*by **Gugun Gunara** — bersama **Muhammad Lutfi Azmi** · Prabudanling · Santri Angon*
+*Didukung oleh **PT Top Konsultan Internasional** (topkonsultan.web.id) & **PT Digital Bisnis Manajemen** (digiman.id)*
+
 *Jakarta / Everywhere — 2045*
 
 </div>

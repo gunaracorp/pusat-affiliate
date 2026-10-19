@@ -217,6 +217,10 @@ export function MainApp() {
                 Markas belajar &amp; eksekusi affiliate komisi tertinggi dunia. Dari TikTok Shop sampai SaaS recurring
                 — satu platform, satu tujuan: <span className="text-emerald-300">ratusan juta dollar</span>.
               </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Dipersembahkan oleh <span className="font-semibold text-foreground">Gugun Gunara</span> bersama{' '}
+                <span className="text-foreground/90">Muhammad Lutfi Azmi</span> · Prabudanling · Santri Angon.
+              </p>
               <div className="mt-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 WEB 6.0 PROTOCOL • NODE CLUSTER 46/46
@@ -236,6 +240,65 @@ export function MainApp() {
             </nav>
           </div>
 
+          {/* ============ PITA KREDIT & DUKUNGAN (branding SEO on-page) ============ */}
+          <div
+            id="kredit"
+            className="mt-10 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.03] p-5 sm:p-6"
+          >
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] tracking-[0.25em] text-emerald-400/90 uppercase">
+                  Dipersembahkan &amp; Didukung Oleh
+                </p>
+                <p className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl">
+                  by <span className="text-gradient-neon">Gugun Gunara</span>
+                </p>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Bersama{' '}
+                  <span className="font-semibold text-foreground/90">Muhammad Lutfi Azmi</span>
+                  <span className="mx-1.5 text-emerald-400/50">•</span>Prabudanling
+                  <span className="mx-1.5 text-emerald-400/50">•</span>Santri Angon
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="https://topkonsultan.web.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="PT Top Konsultan Internasional — topkonsultan.web.id"
+                  className="glass-hover group flex min-w-[220px] flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-emerald-400/40"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-lg">
+                    🏢
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm leading-snug font-bold">PT Top Konsultan Internasional</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-emerald-300/80 group-hover:text-emerald-300">
+                      topkonsultan.web.id — Support System
+                    </span>
+                  </span>
+                </a>
+                <a
+                  href="https://digiman.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="PT Digital Bisnis Manajemen — digiman.id"
+                  className="glass-hover group flex min-w-[220px] flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-amber-300/40"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-amber-300/30 bg-amber-400/10 text-lg">
+                    ⚙️
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm leading-snug font-bold">PT Digital Bisnis Manajemen</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-amber-200/80 group-hover:text-amber-200">
+                      digiman.id — Support System
+                    </span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+
           {/* Bottom bar */}
           <div className="mt-10 border-t border-white/5 pt-6">
             <p className="text-xs leading-relaxed text-muted-foreground">
@@ -243,7 +306,26 @@ export function MainApp() {
               Angka nyata bergantung pada eksekusi &amp; program resmi masing-masing brand.
             </p>
             <p className="mt-3 text-xs text-muted-foreground">
-              © 2045 PUSATAFFILIATE Labs — Jakarta / Everywhere.
+              © 2045 PUSATAFFILIATE Labs by{' '}
+              <span className="font-semibold text-emerald-300">Gugun Gunara</span> — didukung{' '}
+              <a
+                href="https://topkonsultan.web.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-emerald-400/40 underline-offset-2 transition-colors hover:text-emerald-300"
+              >
+                PT Top Konsultan Internasional
+              </a>{' '}
+              &amp;{' '}
+              <a
+                href="https://digiman.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-amber-300/40 underline-offset-2 transition-colors hover:text-amber-200"
+              >
+                PT Digital Bisnis Manajemen
+              </a>{' '}
+              — Jakarta / Everywhere.
             </p>
           </div>
         </div>
@@ -595,6 +677,10 @@ function MenuSheetContent({ activeItem, onNavigate }: { activeItem: MenuItem; on
         </Button>
         <p className="text-center font-mono text-[9px] tracking-[0.25em] text-muted-foreground">
           {SOON_COUNT} MODUL DALAM PENGERJAAN • WEB 6.0
+        </p>
+        <p className="text-center text-[10px] text-muted-foreground">
+          by <span className="font-semibold text-emerald-300">Gugun Gunara</span> ·{' '}
+          <span className="text-foreground/70">Top Konsultan × Digiman</span>
         </p>
       </div>
     </SheetContent>

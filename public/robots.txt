@@ -1,14 +1,12 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# PUSATAFFILIATE — by Gugun Gunara
+# Support system: PT Top Konsultan Internasional (topkonsultan.web.id)
+#                 PT Digital Bisnis Manajemen (digiman.id)
 
 User-agent: *
 Allow: /
+
+# Kepemilikan & entitas (lihat JSON-LD di halaman):
+# Person    : Gugun Gunara (founder), Muhammad Lutfi Azmi (co-creator)
+# Brands    : Prabudanling, Santri Angon
+
+Sitemap: https://topkonsultan.web.id/sitemap.xml

@@ -147,3 +147,21 @@ Work Log:
 Stage Summary:
 - Error hidrasi Radix tuntas: id eksplisit menimpa generate-an useId + suppressHydrationWarning; teruji 0 error pada reload berulang
 - README.md baru dibuat (sebelumnya tidak ada), bilingual EN/ID, terdokumentasi akurat dari kode aktual (9 endpoint, 7 model, 20 modul)
+---
+Task ID: 11
+Agent: main (orchestrator)
+Task: Branding & SEO — titipan nama Gugun Gunara + tim & PT pendukung (permintaan: "biar namaku naik di Google")
+
+Work Log:
+- layout.tsx: metadata penuh — title template "by Gugun Gunara", 18 keywords (semua nama: Gugun Gunara, Muhammad Lutfi Azmi, Prabudanling, Santri Angon, PT Top Konsultan Internasional, topkonsultan.web.id, PT Digital Bisnis Manajemen, digiman.id), authors/creator/publisher, OpenGraph (locale id_ID + hero.png), Twitter card, robots index/follow + googleBot max-image-preview, canonical, metadataBase dari env NEXT_PUBLIC_SITE_URL (fallback topkonsultan.web.id)
+- layout.tsx: JSON-LD @graph 6 entitas — Person Gugun Gunara (founder), Person Muhammad Lutfi Azmi, Organization PT Top Konsultan Internasional, Organization PT Digital Bisnis Manajemen, WebSite (author+creator+publisher), SoftwareApplication
+- main-app.tsx footer: pita kredit "Dipersembahkan & Didukung Oleh — by Gugun Gunara" + kartu link 2 PT (dofollow, target _blank), copyright "© 2045 PUSATAFFILIATE Labs by Gugun Gunara — didukung ...", credit line di blok brand footer, credit di footer Sheet mobile
+- SEO teknis: public/robots.txt (dengan komentar kepemilikan + sitemap), src/app/sitemap.ts (canonical daily priority 1), .env + .env.example (NEXT_PUBLIC_SITE_URL)
+- README: tabel kredit EN ("Created & Maintained By") + ID ("Dibuat & Dikelola Oleh") + blok penutup berisi semua nama
+- Fix bug self-inflicted: deklarasi font geistSans/geistMono terhapus saat rewrite layout (error "geistSans is not defined") — dikembalikan
+- Verifikasi: title tab "…| by Gugun Gunara", JSON-LD @graph 6 entitas terbaca browser, keywords meta terisi semua nama, canonical + og:title benar, sitemap.xml & robots.txt serve 200, footer desktop & mobile render pita kredit dengan nama PT penuh (truncate dihapus), lint bersih, 0 console error
+
+Stage Summary:
+- Branding lengkap di 4 lapis: UI terlihat (footer band + copyright + sheet), meta tags, JSON-LD structured data, README
+- Domain kanonik bisa diganti saat deploy via env NEXT_PUBLIC_SITE_URL — dokumentasi di .env.example
+- Catatan: peringkat Google membutuhkan domain live terindeks + Google Search Console; semua sinyal on-page sudah terpasang
